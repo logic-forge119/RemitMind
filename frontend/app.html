@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RemitMind Portal | International Remittance & AI Intelligence</title>
+  <meta name="description" content="RemitMind production workspace for international remittance payment execution, real-time risk operations, village receiver budgeting, and agent liquidity forecasting.">
+
+  <!-- Google Fonts: Outfit & Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- Ambient AI Glow Aura -->
+  <div class="ai-ambient-glow" aria-hidden="true"></div>
+
+  <div class="app-container">
+    <!-- Main App Navigation Header -->
+    <header class="app-header">
+      <div class="app-header-inner">
+        <!-- Brand -->
+        <div class="app-brand">
+          <a href="index.html" class="nav-logo" title="Back to Landing Page">
+            <div class="logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div class="logo-text-group">
+              <span class="logo-title">RemitMind <span style="font-size:0.72rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px; font-weight:700;">AI</span></span>
+              <span class="logo-subtitle">For upay Bangladesh</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="app-nav-tabs" id="app-nav-bar">
+          <button class="app-nav-tab active" data-view="pay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Send Money</span>
+          </button>
+          
+          <button class="app-nav-tab" data-view="analyst">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Risk Ops</span>
+          </button>
+
+          <button class="app-nav-tab" data-view="receiver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>Receiver View</span>
+          </button>
+
+          <button class="app-nav-tab" data-view="agent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Agent Cash</span>
+          </button>
+
+          <button class="app-nav-tab" data-view="ledger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>Transactions</span>
+          </button>
+        </nav>
+
+        <!-- Right Actions -->
+        <div class="app-header-actions">
+          <!-- Light / Dark Theme Button -->
+          <button class="theme-toggle-btn" id="app-theme-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
+            <span id="app-theme-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            </span>
+          </button>
+
+          <a href="index.html" class="btn btn-secondary btn-sm" title="Return to Landing Page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>Landing</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Views Container -->
+    <main class="app-main">
+
+      <!-- =====================================================================
+           VIEW 1: SIMPLIFIED SENDER FLOW (INTERNATIONAL PAYMENT)
+           ===================================================================== -->
+      <section class="app-view active" id="view-pay">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">Send Money to Bangladesh</h2>
+            <p class="view-subheading">Deposit funds directly into any verified upay mobile wallet with AI-optimized timing.</p>
+          </div>
+          <div>
+            <span class="ticker-badge" id="disp-pay-savings-badge" style="background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); font-size:0.85rem; padding:6px 14px;">
+              AI Optimized: + BDT 1,380 Extra Payout
+            </span>
+          </div>
+        </div>
+
+        <div class="payment-grid">
+          <!-- Left Column: Simple Stepper -->
+          <div>
+            <!-- Step 1: Amount & Corridor -->
+            <div class="step-card">
+              <div class="step-header">
+                <div class="step-number">1</div>
+                <h3 class="step-title">How much would you like to send?</h3>
+              </div>
+
+              <div class="form-group">
+                <label for="pay-corridor" class="form-label">
+                  <span>Sending Country</span>
+                  <span style="color:var(--upay-emerald-light);">Direct Settlement</span>
+                </label>
+                <select id="pay-corridor" class="form-select">
+                  <option value="AED_BDT">United Arab Emirates (AED &rarr; BDT)</option>
+                  <option value="SAR_BDT">Saudi Arabia (SAR &rarr; BDT)</option>
+                  <option value="MYR_BDT">Malaysia (MYR &rarr; BDT)</option>
+                  <option value="EUR_BDT">Italy / Europe (EUR &rarr; BDT)</option>
+                  <option value="USD_BDT">United States / Global (USD &rarr; BDT)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="pay-amount" class="form-label">
+                  <span>Send Amount</span>
+                  <span style="color:var(--ai-cyan); font-weight:700;">Source Currency</span>
+                </label>
+                <input type="number" id="pay-amount" class="form-input" value="2000" min="100" max="50000" step="100" style="font-size:1.2rem; font-weight:700;">
+                
+                <!-- Quick Amount Chips -->
+                <div class="quick-preset-chips">
+                  <button type="button" class="preset-chip" onclick="setSendAmount(500)">500</button>
+                  <button type="button" class="preset-chip" onclick="setSendAmount(1000)">1,000</button>
+                  <button type="button" class="preset-chip" onclick="setSendAmount(2000)">2,000</button>
+                  <button type="button" class="preset-chip" onclick="setSendAmount(5000)">5,000</button>
+                </div>
+              </div>
+
+              <!-- AI Send-Plan Recommendation -->
+              <div style="margin-top:18px;">
+                <label class="form-label">
+                  <span>AI Timing Advice (Gemini Powered)</span>
+                  <span style="color:var(--ai-cyan);">Peak Window Detected</span>
+                </label>
+                
+                <div class="timing-choices-grid">
+                  <div class="timing-choice-card" data-timing="now">
+                    <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Instant Dispatch</div>
+                    <div style="font-weight:800; font-size:1.1rem; margin:4px 0;">Send Today</div>
+                    <div style="font-size:0.78rem; color:var(--text-secondary);">Fee: 2.0% &bull; Immediate</div>
+                  </div>
+
+                  <div class="timing-choice-card selected" data-timing="best">
+                    <div style="font-size:0.72rem; color:var(--upay-emerald-light); text-transform:uppercase; font-weight:700;">Recommended Peak</div>
+                    <div style="font-weight:800; font-size:1.1rem; margin:4px 0; color:var(--upay-emerald-light);">Send on Thursday</div>
+                    <div style="font-size:0.78rem; color:var(--text-secondary);">Fee: 1.8% &bull; + BDT 1,380 Saved</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Beneficiary Details -->
+            <div class="step-card">
+              <div class="step-header">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Who is receiving the money?</h3>
+              </div>
+
+              <div class="form-group">
+                <label for="pay-receiver-name" class="form-label">Beneficiary Full Name</label>
+                <input type="text" id="pay-receiver-name" class="form-input" value="Amina Begum">
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label for="pay-receiver-phone" class="form-label">
+                    <span>upay Mobile Number</span>
+                    <span style="color:var(--upay-emerald-light); font-size:0.75rem;">Verified</span>
+                  </label>
+                  <input type="text" id="pay-receiver-phone" class="form-input" value="+880 1712 345678">
+                </div>
+
+                <div class="form-group">
+                  <label for="pay-receiver-district" class="form-label">District in Bangladesh</label>
+                  <select id="pay-receiver-district" class="form-select">
+                    <option value="Sylhet">Sylhet</option>
+                    <option value="Chittagong">Chittagong</option>
+                    <option value="Dhaka">Dhaka</option>
+                    <option value="Comilla">Comilla</option>
+                    <option value="Brahmanbaria">Brahmanbaria</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Budget Goal Split (Collapsible / Simple) -->
+              <div style="margin-top:10px;">
+                <label class="form-label">
+                  <span>Family Goal Allocation (Optional)</span>
+                  <span style="color:var(--text-muted);">Guided Splitting</span>
+                </label>
+
+                <div class="goal-sliders-group">
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--ai-indigo);">House Rent & Living Expenses</span>
+                      <span id="app-val-rent">50%</span>
+                    </div>
+                    <input type="range" id="app-goal-rent" class="range-slider" value="50" min="0" max="100">
+                  </div>
+
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--upay-emerald);">Education & School Fees</span>
+                      <span id="app-val-school">30%</span>
+                    </div>
+                    <input type="range" id="app-goal-school" class="range-slider" value="30" min="0" max="100">
+                  </div>
+
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--accent-amber);">Savings Fund</span>
+                      <span id="app-val-savings">20%</span>
+                    </div>
+                    <input type="range" id="app-goal-savings" class="range-slider" value="20" min="0" max="100">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Payment Card Details -->
+            <div class="step-card">
+              <div class="step-header">
+                <div class="step-number">3</div>
+                <h3 class="step-title">International Payment</h3>
+              </div>
+
+              <div class="payment-methods-grid">
+                <div class="payment-method-card selected">
+                  <svg class="method-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  <div class="method-label">Credit/Debit Card</div>
+                </div>
+
+                <div class="payment-method-card">
+                  <svg class="method-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                  <div class="method-label">GCC Mada / KNET</div>
+                </div>
+
+                <div class="payment-method-card">
+                  <svg class="method-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <div class="method-label">Direct Bank Wire</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="card-holder" class="form-label">Name on Card</label>
+                <input type="text" id="card-holder" class="form-input" value="Rahim Sheikh" placeholder="Full name on card">
+              </div>
+
+              <div class="form-group">
+                <label for="card-number" class="form-label">Card Number</label>
+                <input type="text" id="card-number" class="form-input" value="4242 8812 9901 4242" maxlength="19" placeholder="16-digit card number">
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                <div class="form-group">
+                  <label for="card-expiry" class="form-label">Expiry Date</label>
+                  <input type="text" id="card-expiry" class="form-input" value="10/28" maxlength="5" placeholder="MM/YY">
+                </div>
+
+                <div class="form-group">
+                  <label for="card-cvv" class="form-label">Security Code (CVV)</label>
+                  <input type="password" id="card-cvv" class="form-input" value="789" maxlength="4" placeholder="CVC/CVV">
+                </div>
+              </div>
+
+              <!-- Fraud Anomaly Testing Simulation Checkbox -->
+              <div style="margin-top:14px; padding:12px; background:rgba(245,158,11,0.08); border-radius:var(--radius-sm); border:1px solid rgba(245,158,11,0.2);">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                  <input type="checkbox" id="chk-simulate-anomaly" style="width:18px; height:18px; cursor:pointer;">
+                  <span style="font-size:0.82rem; color:var(--accent-amber); font-weight:600;">
+                    Simulate Anomaly (Triggers Isolation Forest review queue & score &ge; 70)
+                  </span>
+                </label>
+              </div>
+
+              <!-- Submit Button -->
+              <button class="btn btn-glow btn-lg" id="btn-submit-payment" style="width:100%; margin-top:24px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Authorize Payment of <span id="btn-pay-total-amount">2,000 AED</span></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Card Preview & Order Summary -->
+          <div>
+            <!-- Virtual Card Visual Preview -->
+            <div class="virtual-card">
+              <div class="card-top">
+                <div class="card-chip"></div>
+                <div class="card-brand">VISA GOLD</div>
+              </div>
+
+              <div class="card-number-display" id="disp-card-number">4242 8812 9901 4242</div>
+
+              <div class="card-bottom">
+                <div>
+                  <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase;">Cardholder</div>
+                  <div class="card-holder-name" id="disp-card-holder">RAHIM SHEIKH</div>
+                </div>
+                <div>
+                  <div style="font-size:0.65rem; color:#94a3b8; text-transform:uppercase;">Expires</div>
+                  <div class="card-expiry-val" id="disp-card-expiry">10/28</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settlement Breakdown Card -->
+            <div class="step-card">
+              <h3 style="font-size:1.15rem; margin-bottom:16px; color:var(--text-primary);">Settlement Summary</h3>
+
+              <div class="receipt-details-list">
+                <div class="receipt-row">
+                  <span style="color:var(--text-secondary);">Guaranteed FX Rate</span>
+                  <strong id="summary-rate" style="color:var(--text-primary);">1 AED = BDT 33.85</strong>
+                </div>
+                <div class="receipt-row">
+                  <span style="color:var(--text-secondary);">upay Transfer Fee</span>
+                  <strong id="summary-fee" style="color:var(--text-primary);">BDT 1,220 (1.8%)</strong>
+                </div>
+                <div class="receipt-row">
+                  <span style="color:var(--text-secondary);">Deposit Target</span>
+                  <strong style="color:var(--upay-emerald-light);">Direct upay Wallet Credit</strong>
+                </div>
+                <div class="receipt-row" style="font-size:1.1rem; padding-top:12px;">
+                  <span style="color:var(--text-primary); font-weight:700;">Recipient Receives</span>
+                  <strong id="summary-payout" style="color:var(--upay-emerald-light); font-size:1.25rem;">BDT 67,780</strong>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:10px; margin-top:16px; font-size:0.8rem; color:var(--text-secondary);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Zero Hidden Fees &bull; Protected by Isolation Forest Anomaly Radar</span>
+              </div>
+            </div>
+
+            <!-- Ask AI Quick Trigger -->
+            <div class="step-card" style="background:linear-gradient(135deg, rgba(6,182,212,0.08) 0%, rgba(99,102,241,0.05) 100%); border-color:var(--border-cyan);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-weight:700; font-size:0.85rem; color:var(--ai-cyan); text-transform:uppercase;">AI Remittance Copilot</span>
+                <span class="ticker-badge" style="background:rgba(6,182,212,0.2); color:var(--ai-cyan);">Gemini 1.5</span>
+              </div>
+              <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">
+                Need help deciding when to send or explaining numbers to your family?
+              </p>
+              <button type="button" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="toggleCopilotDrawer(true); askCopilotDirect('When is the best day to send AED to Bangladesh?');">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <span>Ask AI: Best Timing & Rates</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           VIEW 2: RISK OPERATIONS CONSOLE (ANALYST QUEUE)
+           ===================================================================== -->
+      <section class="app-view" id="view-analyst">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">Risk Operations & Fraud Console</h2>
+            <p class="view-subheading">Ranked alert queue evaluated by Hybrid Isolation Forest. Zero auto-blocking: all flagged transfers require human decision.</p>
+          </div>
+          <div>
+            <span class="ticker-badge" style="background:rgba(244,63,94,0.15); color:var(--accent-rose); font-size:0.85rem; padding:6px 14px;">
+              Human Oversight Active
+            </span>
+          </div>
+        </div>
+
+        <!-- Adversarial Attack Simulation & Replay Deck -->
+        <div class="attack-deck-card">
+          <div class="attack-deck-header">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-rose)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h3 style="font-size:1.15rem; color:var(--text-primary); margin:0;">Adversarial Attack Simulation & Replay Deck</h3>
+              </div>
+              <p style="font-size:0.84rem; color:var(--text-secondary); margin:0;">
+                Test RemitMind's Hybrid Isolation Forest Radar against synthetic attack vectors. Replaying dispatches live transactions to the ML pipeline and generates grounded forensic SAR explanations.
+              </p>
+            </div>
+            <div>
+              <span class="ticker-badge" style="background:rgba(6,182,212,0.15); color:var(--ai-cyan); font-size:0.75rem;">
+                Rule GR §5.6 Grounded
+              </span>
+            </div>
+          </div>
+
+          <!-- Scenario Cards Grid -->
+          <div class="scenarios-grid">
+            <!-- Scenario 1: ATO -->
+            <div class="scenario-card">
+              <div>
+                <div class="scenario-header">
+                  <span class="scenario-title">Account Takeover (ATO)</span>
+                  <span class="ticker-badge" style="background:rgba(244,63,94,0.2); color:var(--accent-rose); font-size:0.68rem;">Score ~88</span>
+                </div>
+                <p class="scenario-desc">
+                  Legitimate Dubai sender session hijacked via proxy; sudden 96,000 BDT transfer with 3 rapid attempts to new beneficiary.
+                </p>
+                <div class="scenario-tags">
+                  <span class="scenario-tag">VELOCITY_3X</span>
+                  <span class="scenario-tag">NEW_DEVICE</span>
+                  <span class="scenario-tag">AMOUNT_DEVIATION</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="width:100%; border-color:rgba(244,63,94,0.3); color:var(--accent-rose);" onclick="replayAttackScenario('account_takeover')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Replay ATO Attack</span>
+              </button>
+            </div>
+
+            <!-- Scenario 2: Mule Ring Smurfing -->
+            <div class="scenario-card">
+              <div>
+                <div class="scenario-header">
+                  <span class="scenario-title">Coordinated Mule Ring</span>
+                  <span class="ticker-badge" style="background:rgba(244,63,94,0.2); color:var(--accent-rose); font-size:0.68rem;">Score ~92</span>
+                </div>
+                <p class="scenario-desc">
+                  Syndicate smurfing: 4 foreign senders funneling structured 24,900 BDT transfers simultaneously into known mule wallet.
+                </p>
+                <div class="scenario-tags">
+                  <span class="scenario-tag">MULE_CLUSTER_FAN_IN</span>
+                  <span class="scenario-tag">NEW_RECEIVER</span>
+                  <span class="scenario-tag">STRUCTURED_AMT</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="width:100%; border-color:rgba(244,63,94,0.3); color:var(--accent-rose);" onclick="replayAttackScenario('mule_fan_in')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Replay Mule Ring</span>
+              </button>
+            </div>
+
+            <!-- Scenario 3: Social Engineering Scam -->
+            <div class="scenario-card">
+              <div>
+                <div class="scenario-header">
+                  <span class="scenario-title">Social Engineering Scam</span>
+                  <span class="ticker-badge" style="background:rgba(245,158,11,0.2); color:var(--accent-amber); font-size:0.68rem;">Score ~76</span>
+                </div>
+                <p class="scenario-desc">
+                  Elderly migrant worker coerced via fraudulent phone call into late-night off-hours transfer to predatory fake lottery fee.
+                </p>
+                <div class="scenario-tags">
+                  <span class="scenario-tag">OFF_HOURS_ANOMALY</span>
+                  <span class="scenario-tag">NEW_RECEIVER</span>
+                  <span class="scenario-tag">CORRIDOR_SPIKE</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="width:100%; border-color:rgba(245,158,11,0.3); color:var(--accent-amber);" onclick="replayAttackScenario('social_scam')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Replay Social Scam</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Feature Attribution Waterfall Container (Populated on replay) -->
+          <div id="attack-waterfall-container" style="display:none;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="font-size:1.1rem; color:var(--text-primary); margin:0;">Active Review Queue</h3>
+          <span style="font-size:0.8rem; color:var(--text-secondary);" id="analyst-queue-count">Showing active cases</span>
+        </div>
+
+        <div id="analyst-queue-container">
+          <!-- Dynamic Alerts Rendered via main_app.js -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           VIEW 3: VILLAGE RECEIVER PORTAL (AMINA)
+           ===================================================================== -->
+      <section class="app-view" id="view-receiver">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">Village Receiver Summary</h2>
+            <p class="view-subheading">Transparent plain-language statement in Bangla and English with zero hidden deduction guarantee.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--upay-emerald-light);">বাংলা</span>
+              <input type="checkbox" id="app-rcv-lang-toggle" style="width:20px; height:20px; cursor:pointer;">
+              <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">EN</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="max-width:800px; margin:0 auto;">
+          <div class="step-card bangla-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="ticker-badge">upay রেমিট্যান্স প্রাপ্তি</span>
+              <span style="font-size:0.75rem; color:var(--text-secondary);">আজ বিকাল ৪:২০</span>
+            </div>
+
+            <div class="bangla-highlight" id="app-rcv-statement" style="font-size:1.5rem; margin:20px 0;">
+              দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে আপনার উপায় একাউন্টে জমা হয়েছে। কোনো লুকানো চার্জ কাটা হয়নি।
+            </div>
+
+            <div style="display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap;">
+              <button class="audio-preview-btn" id="app-btn-voice">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                <span>Play Voice Summary (বাংলায় শুনুন)</span>
+              </button>
+
+              <button class="btn btn-secondary btn-sm" onclick="toggleCopilotDrawer(true); askCopilotDirect('আমার মা কীভাবে এই টাকা খরচ করবে সহজ করে বলো?');">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span>AI পরামর্শ (Gemini Assistant)</span>
+              </button>
+            </div>
+
+            <div style="background:var(--bg-darkest); padding:20px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+              <div style="font-size:0.9rem; font-weight:700; color:var(--ai-cyan); margin-bottom:12px;">
+                প্রস্তাবিত খরচের বরাদ্দ তালিকা:
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px; font-size:0.92rem;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span>ঘরভাড়া ও পারিবারিক খরচ (৫০%)</span>
+                  <strong>৳৩৩,৮৯০</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span>ছেলেমেয়ের স্কুলের ফি ও বই (৩০%)</span>
+                  <strong>৳২০,৩৩৪</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span>ভবিষ্যত আপদকালীন সঞ্চয় (২০%)</span>
+                  <strong>৳১৩,৫৫৬</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           VIEW 4: AGENT CASH-OUT LIQUIDITY RADAR (KARIM)
+           ===================================================================== -->
+      <section class="app-view" id="view-agent">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">upay Agent Liquidity Radar</h2>
+            <p class="view-subheading">7-day cash-out demand forecast for rural agent point #AG-05 with Eid festival surge intelligence.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px;">
+          <div class="step-card">
+            <h3 style="font-size:1.15rem; margin-bottom:16px;">Agent Vault Status</h3>
+
+            <div class="form-group">
+              <label for="app-agent-slider" class="form-label">
+                <span>Current Physical Cash-on-Hand</span>
+                <span id="app-agent-cash-val" style="color:var(--upay-gold); font-weight:700;">BDT 300,000</span>
+              </label>
+              <input type="range" id="app-agent-slider" class="range-slider" min="50000" max="600000" step="10000" value="300000">
+            </div>
+
+            <div class="receipt-details-list">
+              <div class="receipt-row">
+                <span>Agent Location</span>
+                <strong>Balaganj Bazar, Sylhet</strong>
+              </div>
+              <div class="receipt-row">
+                <span>Peak Demand (Eid Eve)</span>
+                <strong>BDT 420,000</strong>
+              </div>
+              <div class="receipt-row">
+                <span>Liquidity Balance</span>
+                <strong id="app-agent-deficit" style="color:var(--accent-rose);">BDT 120,000 Shortfall</strong>
+              </div>
+            </div>
+
+            <button class="btn btn-glow" style="width:100%; margin-top:16px;" onclick="showAppToast('Cash dispatch order logged with upay Regional Vault!')">
+              <span>Request Liquidity Top-up</span>
+            </button>
+          </div>
+
+          <div class="step-card">
+            <h3 style="font-size:1.15rem; margin-bottom:16px;">7-Day Demand Curve</h3>
+            
+            <div class="agent-bars-container">
+              <div class="agent-bar-col">
+                <span class="agent-bar-val">180k</span>
+                <div class="agent-bar" style="height: 38%;"></div>
+                <span class="agent-bar-label">Mon</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val">210k</span>
+                <div class="agent-bar" style="height: 44%;"></div>
+                <span class="agent-bar-label">Tue</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val">260k</span>
+                <div class="agent-bar" style="height: 55%;"></div>
+                <span class="agent-bar-label">Wed</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val" style="color:var(--accent-rose);">420k</span>
+                <div class="agent-bar spike" style="height: 92%;"></div>
+                <span class="agent-bar-label" style="color:var(--accent-rose); font-weight:700;">Thu (Eid)</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val" style="color:var(--accent-rose);">390k</span>
+                <div class="agent-bar spike" style="height: 85%;"></div>
+                <span class="agent-bar-label" style="color:var(--accent-rose);">Fri</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val">220k</span>
+                <div class="agent-bar" style="height: 48%;"></div>
+                <span class="agent-bar-label">Sat</span>
+              </div>
+              <div class="agent-bar-col">
+                <span class="agent-bar-val">160k</span>
+                <div class="agent-bar" style="height: 34%;"></div>
+                <span class="agent-bar-label">Sun</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           VIEW 5: TRANSACTION AUDIT LEDGER
+           ===================================================================== -->
+      <section class="app-view" id="view-ledger">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">Unified Remittance Ledger</h2>
+            <p class="view-subheading">Live historical audit log of all international transfers with risk scores and operational status.</p>
+          </div>
+        </div>
+
+        <div class="alerts-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Transfer ID</th>
+                <th>Timestamp</th>
+                <th>Sender</th>
+                <th>Recipient</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Risk Score</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="ledger-tbody">
+              <!-- Rendered via main_app.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =========================================================================
+       FLOATING AI COPILOT BUTTON & INTERACTIVE CHAT DRAWER
+       ========================================================================= -->
+  <button class="copilot-floating-btn" id="btn-toggle-copilot" onclick="toggleCopilotDrawer()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/></svg>
+    <span>RemitMind AI Copilot</span>
+  </button>
+
+  <div class="copilot-drawer" id="copilot-drawer">
+    <div class="copilot-header">
+      <div class="copilot-title-group">
+        <div class="logo-icon" style="width:30px; height:30px; border-radius:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div>
+          <div style="font-weight:700; font-size:0.9rem; color:var(--text-primary);">RemitMind Copilot</div>
+          <div style="font-size:0.7rem; color:var(--upay-emerald-light);">Grounded LLM &bull; Active</div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="copilot-model-select" style="background:var(--bg-tertiary); border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:0.75rem; padding:3px 6px; border-radius:4px; outline:none;">
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+          <option value="remitmind-local-v1">Local Model</option>
+        </select>
+        <button onclick="toggleCopilotDrawer(false)" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;">&times;</button>
+      </div>
+    </div>
+
+    <!-- Messages Area -->
+    <div class="copilot-messages-area" id="copilot-messages-area">
+      <div class="copilot-msg bot">
+        Hello! I am your RemitMind AI assistant. Ask me about best send days, corridor exchange rates, fraud reason codes, or village budgeting in simple Bangla.
+      </div>
+    </div>
+
+    <!-- Suggested Quick Question Pills -->
+    <div class="copilot-quick-pills">
+      <button class="quick-pill-btn" onclick="askCopilotDirect('When is the best day to send AED?')">When to send AED?</button>
+      <button class="quick-pill-btn" onclick="askCopilotDirect('Why was transfer TRX-9803 flagged?')">Why is TRX-9803 risky?</button>
+      <button class="quick-pill-btn" onclick="askCopilotDirect('বাংলায় সহজ হিসাব বুঝাও')">বাংলায় সহজ হিসাব</button>
+      <button class="quick-pill-btn" onclick="askCopilotDirect('Check agent cash liquidity for Eid')">Agent cash for Eid</button>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="copilot-input-bar">
+      <input type="text" class="copilot-text-input" id="copilot-user-input" placeholder="Ask AI anything about your remittance..." onkeypress="if(event.key==='Enter') sendCopilotMsg();">
+      <button class="copilot-send-btn" onclick="sendCopilotMsg()" title="Send Message">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 1: 3D SECURE / BANK OTP VERIFICATION MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop" id="otp-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ai-cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span style="font-weight:700;">Verified by Visa / Bank OTP</span>
+        </div>
+        <button id="btn-cancel-otp" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="font-size:0.9rem; color:var(--text-secondary); text-align:center;">
+          A 6-digit verification code has been dispatched to your international registered mobile phone ending in <strong>••• 428</strong>.
+        </p>
+
+        <div class="otp-inputs-row">
+          <input type="text" class="otp-box" maxlength="1" value="7">
+          <input type="text" class="otp-box" maxlength="1" value="4">
+          <input type="text" class="otp-box" maxlength="1" value="2">
+          <input type="text" class="otp-box" maxlength="1" value="8">
+          <input type="text" class="otp-box" maxlength="1" value="9">
+          <input type="text" class="otp-box" maxlength="1" value="1">
+        </div>
+
+        <button class="btn btn-primary" id="btn-confirm-otp" style="width:100%; padding:14px; font-size:1rem;">
+          <span>Verify & Process Payment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 2: SUCCESS RECEIPT MODAL
+       ========================================================================= -->
+  <div class="modal-backdrop" id="receipt-modal">
+    <div class="modal-dialog">
+      <div class="receipt-card">
+        <div class="receipt-icon-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+
+        <h3 style="font-size:1.4rem; color:var(--text-primary); margin-bottom:4px;">Payment Succeeded</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary);">International remittance has been verified and deposited.</p>
+
+        <div class="receipt-details-list">
+          <div class="receipt-row">
+            <span>Reference ID</span>
+            <strong id="rec-trx-id" style="font-family:var(--font-mono); color:var(--ai-cyan);">TRX-9801</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Amount Sent</span>
+            <strong id="rec-amount-src">2,000 AED</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Amount Credited</span>
+            <strong id="rec-amount-bdt" style="color:var(--upay-emerald-light);">BDT 67,780</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Beneficiary</span>
+            <strong id="rec-receiver">Amina Begum</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Status</span>
+            <strong id="rec-status" style="color:var(--upay-emerald-light);">COMPLETED</strong>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-close-receipt" style="width:100%;">
+          <span>Done</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL 3: GROUNDED FORENSIC SAR REPORT & HUMAN OVERSIGHT DECISION
+       ========================================================================= -->
+  <div class="modal-backdrop" id="sar-modal">
+    <div class="modal-dialog" style="max-width:650px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ai-cyan)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span style="font-weight:700;" id="sar-modal-title">Grounded Forensic SAR Briefing</span>
+        </div>
+        <button id="btn-close-sar" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.4rem;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:0.84rem; flex-wrap:wrap; gap:8px;">
+          <div>Case Ref: <strong id="sar-case-ref" style="font-family:var(--font-mono); color:var(--ai-cyan);">TRX-9803</strong></div>
+          <div>Model: <strong id="sar-model-tag" style="color:var(--upay-emerald-light);">Gemini 1.5 Pro + Isolation Forest</strong></div>
+        </div>
+
+        <div class="sar-narrative-box" id="sar-narrative-content">
+          Loading forensic case analysis...
+        </div>
+
+        <div style="margin-top:16px;">
+          <div style="font-size:0.8rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:8px;">
+            Human-in-the-Loop Operational Decision (Stores Retraining Feedback Label):
+          </div>
+          <div class="action-buttons-row">
+            <button class="btn btn-approve btn-sm" id="btn-sar-approve">
+              <span>Approve & Release (Legitimate)</span>
+            </button>
+            <button class="btn btn-hold btn-sm" id="btn-sar-hold">
+              <span>Hold for Step-up KYC</span>
+            </button>
+            <button class="btn btn-escalate btn-sm" id="btn-sar-escalate">
+              <span>Escalate to Crimes Unit</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Script -->
+  <script src="js/main_app.js"></script>
+</body>
+</html>

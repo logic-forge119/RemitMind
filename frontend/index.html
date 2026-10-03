@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RemitMind | AI-Powered Remittance Intelligence & Safety Layer for upay</title>
+  <meta name="description" content="RemitMind empowers Bangladeshi migrant workers and upay with AI send-plan recommendations, international payments, explainable fraud detection with zero auto-blocks, plain Bangla summaries, and agent liquidity forecasting.">
+  
+  <!-- Modern Google Fonts: Outfit & Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Ambient AI Glow Aura -->
+  <div class="ai-ambient-glow" aria-hidden="true"></div>
+
+  <!-- Top Real-time FX Ticker -->
+  <div class="ticker-bar" id="ticker-banner">
+    <div class="container">
+      <div class="ticker-content">
+        <div class="ticker-item">
+          <span class="ticker-badge">LIVE FX</span>
+          <span>AED/BDT: <strong>32.85</strong> <span class="ticker-rate-pos">+1.2%</span></span>
+        </div>
+        <div class="ticker-item">
+          <span>SAR/BDT: <strong>32.10</strong> <span class="ticker-rate-pos">+0.8%</span></span>
+        </div>
+        <div class="ticker-item">
+          <span>MYR/BDT: <strong>27.40</strong> <span class="ticker-rate-pos">+1.5%</span></span>
+        </div>
+        <div class="ticker-item">
+          <span>EUR/BDT: <strong>133.50</strong> <span class="ticker-rate-pos">+0.9%</span></span>
+        </div>
+        <div class="ticker-item">
+          <span>USD/BDT: <strong>121.20</strong> <span class="ticker-rate-pos">+0.4%</span></span>
+        </div>
+        <div class="ticker-item">
+          <span class="ticker-badge" style="background:rgba(6,182,212,0.15); color:var(--ai-cyan);">AI ADVISORY</span>
+          <span>Peak remittance window detected: <strong>Thursday, Oct 08</strong> (+ BDT 1,380 avg savings)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar" id="main-nav">
+    <div class="container">
+      <div class="nav-wrapper">
+        <a href="#hero" class="nav-logo" id="brand-logo-link">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="logo-text-group">
+            <span class="logo-title">RemitMind <span style="font-size:0.72rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px; font-weight:700;">AI</span></span>
+            <span class="logo-subtitle">For upay Bangladesh</span>
+          </div>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="#solutions" class="nav-link" id="nav-solutions">Personas</a></li>
+          <li><a href="#sandbox" class="nav-link" id="nav-sandbox">Live AI Sandbox</a></li>
+          <li><a href="#engines" class="nav-link" id="nav-engines">The 4 Engines</a></li>
+          <li><a href="#responsible-ai" class="nav-link" id="nav-ethics">Responsible AI</a></li>
+          <li><a href="#api-specs" class="nav-link" id="nav-api">API Specs</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <!-- Light / Dark Mode Toggle Button -->
+          <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
+            <span id="theme-icon-container">
+              <!-- Injected by app.js: Sun or Moon icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            </span>
+          </button>
+
+          <a href="#sandbox" class="btn btn-secondary btn-sm" id="btn-nav-demo">Simulator</a>
+          
+          <!-- Launch Main Web App Button -->
+          <a href="app.html" class="btn btn-glow btn-sm" id="btn-nav-open-app">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span>Launch Web App</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="container">
+      <div class="hero-pill" id="hero-badge">
+        <span class="pulse-dot"></span>
+        <span>RemitMind AI 2.0 &bull; Intelligent Remittance & Fraud Defense for upay</span>
+      </div>
+
+      <h1 class="hero-title" id="main-heading">
+        Smarter Transfers for Migrant Heroes. <br>
+        <span class="text-gradient-emerald">Zero Blindspots for upay.</span>
+      </h1>
+
+      <p class="hero-subtitle" id="hero-description">
+        For Bangladeshi migrant workers worldwide, poorly timed transfers waste hard-earned money while fraud rings exploit transaction blindspots. RemitMind combines rate forecasting, goal-based budgeting, explainable anomaly detection, and agent liquidity intelligence into one platform.
+      </p>
+
+      <div class="hero-cta-group">
+        <!-- Prominent Launch App Button -->
+        <a href="app.html" class="btn btn-glow btn-lg" id="btn-hero-launch-app">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <span>Open Full Web App &bull; International Pay</span>
+        </a>
+
+        <a href="#sandbox" class="btn btn-secondary btn-lg" id="btn-hero-simulator">
+          <span>Try Interactive Sandbox</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Core Impact Metrics -->
+      <div class="stats-grid" id="stats-overview">
+        <div class="stat-card" id="stat-fees">
+          <div class="stat-number">8.4<span>%</span></div>
+          <div class="stat-label">Average Savings</div>
+          <div class="stat-caption">Vs. sending immediately (target &ge; 8%)</div>
+        </div>
+
+        <div class="stat-card" id="stat-recall">
+          <div class="stat-number">74.2<span>%</span></div>
+          <div class="stat-label">Fraud Catch Rate</div>
+          <div class="stat-caption">In top 10% ranked analyst alerts</div>
+        </div>
+
+        <div class="stat-card" id="stat-mape">
+          <div class="stat-number">&lt; 18.6<span>%</span></div>
+          <div class="stat-label">Agent Forecast MAPE</div>
+          <div class="stat-caption">Predicting rural cash-out surges</div>
+        </div>
+
+        <div class="stat-card" id="stat-oversight">
+          <div class="stat-number">100<span>%</span></div>
+          <div class="stat-label">Human-in-the-Loop</div>
+          <div class="stat-caption">Zero autonomous blocking of remittances</div>
+        </div>
+      </div>
+
+      <!-- Hero Visual Banner Frame -->
+      <div class="hero-visual-container" id="hero-banner-frame">
+        <div class="hero-visual-inner">
+          <img src="assets/hero_banner.jpg" alt="RemitMind AI Remittance and Fraud Defense Visual" class="hero-img" id="hero-visual-img">
+          
+          <div class="hero-badges-overlay">
+            <div class="floating-pill">
+              <span class="pulse-dot"></span>
+              <span>Corridor: Dubai (AED) &rarr; Sylhet, BD (BDT)</span>
+            </div>
+            <div class="floating-pill" style="border-color: rgba(6,182,212,0.4); color: var(--ai-cyan);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>Isolation Forest: Anomaly Score 14 (Safe)</span>
+            </div>
+            <div class="floating-pill" style="border-color: rgba(245,158,11,0.4); color: var(--accent-amber);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Optimal Timing: Thursday (+ BDT 1,380 Saved)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Personas & Problems Section -->
+  <section class="container" id="solutions" style="padding-bottom: 70px;">
+    <div class="section-header">
+      <span class="section-tag">Human Centered Remittance</span>
+      <h2 class="section-title">Four Lives Changed by One Intelligent Flow</h2>
+      <p class="section-desc">From construction sites abroad to village courtyards and upay risk operation centers, RemitMind solves tangible bottlenecks at every touchpoint.</p>
+    </div>
+
+    <div class="pillars-grid" id="personas-grid">
+      <!-- Persona 1: Sender Rahim -->
+      <div class="pillar-card" id="persona-sender">
+        <div class="pillar-icon emerald">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </div>
+        <h3 class="pillar-title">Rahim &bull; Migrant Worker</h3>
+        <p class="pillar-desc">
+          Works in Dubai. Unsure if today's exchange rate is optimal or when fees are lowest. RemitMind gives him rate trend forecasts and smart goal-splitting so money reaches the right home expenses.
+        </p>
+        <div class="pillar-meta">
+          <span>Location: Dubai, UAE</span>
+          <span class="pillar-tech">Send-Plan Engine</span>
+        </div>
+      </div>
+
+      <!-- Persona 2: Receiver Amina -->
+      <div class="pillar-card" id="persona-receiver">
+        <div class="pillar-icon cyan">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h3 class="pillar-title">Amina &bull; Mother & Receiver</h3>
+        <p class="pillar-desc">
+          Lives in rural Sylhet. Struggled with confusing SMS alerts and hidden deduction fears. RemitMind explains exactly what arrived in simple, plain Bangla without complex banking jargon.
+        </p>
+        <div class="pillar-meta">
+          <span>Location: Sylhet, BD</span>
+          <span class="pillar-tech">Grounded Bangla LLM</span>
+        </div>
+      </div>
+
+      <!-- Persona 3: Risk Analyst Nusrat -->
+      <div class="pillar-card" id="persona-analyst">
+        <div class="pillar-icon amber">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="pillar-title">Nusrat &bull; upay Risk Analyst</h3>
+        <p class="pillar-desc">
+          Overwhelmed by raw rule alerts. RemitMind provides a prioritized 0-100 risk score, top 3 anomaly reason codes, and an explainable narrative so she can approve, hold, or escalate in seconds.
+        </p>
+        <div class="pillar-meta">
+          <span>Location: Dhaka, upay HQ</span>
+          <span class="pillar-tech">Isolation Forest + Rules</span>
+        </div>
+      </div>
+
+      <!-- Persona 4: Agent Karim -->
+      <div class="pillar-card" id="persona-agent">
+        <div class="pillar-icon purple">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3 class="pillar-title">Karim &bull; Local upay Agent</h3>
+        <p class="pillar-desc">
+          Frequently ran out of physical cash right before Eid festivals, turning desperate families away. RemitMind forecasts 7-day cash-out demand and alerts him to top up cash before the rush.
+        </p>
+        <div class="pillar-meta">
+          <span>Location: Balaganj, BD</span>
+          <span class="pillar-tech">Festival-Aware Forecast</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Sandbox Section -->
+  <section class="sandbox-section" id="sandbox">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Interactive Simulation Experience</span>
+        <h2 class="section-title">Test the Complete RemitMind Platform Live</h2>
+        <p class="section-desc">Experience every persona: optimize a transfer as Rahim, review fraud flags as Nusrat, read simple Bangla as Amina, or predict cash shortages as Karim.</p>
+      </div>
+
+      <div class="sandbox-container" id="sandbox-wrapper">
+        <!-- Tabs Header -->
+        <div class="sandbox-tabs" id="sandbox-nav-tabs">
+          <button class="sandbox-tab-btn active" data-tab="sender" onclick="switchSandboxTab('sender')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <span>1. Sender (Rahim's Plan)</span>
+            <span class="tab-badge">Send Optimizer</span>
+          </button>
+          
+          <button class="sandbox-tab-btn" data-tab="analyst" onclick="switchSandboxTab('analyst')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>2. Analyst (Nusrat's Radar)</span>
+            <span class="tab-badge">Risk Queue</span>
+          </button>
+
+          <button class="sandbox-tab-btn" data-tab="receiver" onclick="switchSandboxTab('receiver')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>3. Receiver (Amina's Portal)</span>
+            <span class="tab-badge">সহজ বাংলা</span>
+          </button>
+
+          <button class="sandbox-tab-btn" data-tab="agent" onclick="switchSandboxTab('agent')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/></svg>
+            <span>4. Agent (Karim's Forecast)</span>
+            <span class="tab-badge">Liquidity</span>
+          </button>
+        </div>
+
+        <!-- PANEL 1: SENDER FLOW -->
+        <div class="sandbox-panel active" id="panel-sender">
+          <div class="sandbox-grid">
+            <!-- Left: Inputs -->
+            <div class="control-card">
+              <h4 class="control-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                <span>Transfer Configuration</span>
+              </h4>
+
+              <div class="form-group">
+                <label for="calc-corridor" class="form-label">
+                  <span>Remittance Corridor</span>
+                  <span style="color:var(--upay-emerald-light);">Live Rates</span>
+                </label>
+                <select id="calc-corridor" class="form-select">
+                  <option value="AED_BDT">United Arab Emirates (AED &rarr; BDT)</option>
+                  <option value="SAR_BDT">Saudi Arabia (SAR &rarr; BDT)</option>
+                  <option value="MYR_BDT">Malaysia (MYR &rarr; BDT)</option>
+                  <option value="EUR_BDT">Italy / Europe (EUR &rarr; BDT)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="calc-amount" class="form-label">
+                  <span>Send Amount (Source Currency)</span>
+                  <span id="disp-calc-currency" style="color:var(--ai-cyan); font-weight:700;">AED</span>
+                </label>
+                <input type="number" id="calc-amount" class="form-input" value="2000" min="100" max="20000" step="50">
+                <input type="range" id="calc-slider" class="range-slider" value="2000" min="100" max="10000" step="50" style="margin-top:10px;">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Goal-Based Allocation Split</span>
+                  <span style="color:var(--text-muted);">Family Budget</span>
+                </label>
+                
+                <div class="goal-sliders-group">
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--ai-indigo);">House Rent & Utilities</span>
+                      <span id="val-rent">50%</span>
+                    </div>
+                    <input type="range" id="goal-rent" class="range-slider" value="50" min="0" max="100">
+                  </div>
+
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--upay-emerald);">Children Education</span>
+                      <span id="val-school">30%</span>
+                    </div>
+                    <input type="range" id="goal-school" class="range-slider" value="30" min="0" max="100">
+                  </div>
+
+                  <div class="goal-item">
+                    <div class="goal-item-header">
+                      <span style="color:var(--accent-amber);">Emergency Savings</span>
+                      <span id="val-savings">20%</span>
+                    </div>
+                    <input type="range" id="goal-savings" class="range-slider" value="20" min="0" max="100">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Buttons: Simulate or Launch Full App -->
+              <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                <button class="btn btn-primary" onclick="showToast('Transfer evaluated! Anomaly check verified.'); switchSandboxTab('analyst');">
+                  <span>Simulate Send Transfer</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+
+                <a href="app.html" class="btn btn-glow" style="width:100%; text-align:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  <span>Pay with International Card</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Right: Real-time Recommendations -->
+            <div class="result-card">
+              <div class="comparison-container">
+                <div class="compare-box baseline">
+                  <span class="compare-tag" style="color:var(--text-muted);">Send Immediately</span>
+                  <div class="compare-val" id="disp-send-now">BDT 66,400</div>
+                  <span style="font-size:0.75rem; color:var(--text-secondary);">Fee: 2.0% | Rate: 32.85</span>
+                </div>
+
+                <div class="compare-box highlight">
+                  <span class="compare-tag" style="color:var(--upay-emerald-light);" id="disp-best-day-name">Send on Thu (Oct 08)</span>
+                  <div class="compare-val" id="disp-send-best" style="color:var(--upay-emerald-light);">BDT 67,780</div>
+                  <div class="compare-saving-badge" id="disp-net-savings">+ BDT 1,380 Saved</div>
+                </div>
+              </div>
+
+              <!-- 5-Day Rate Forecast Visualizer -->
+              <div class="trend-visualizer">
+                <div class="trend-header">
+                  <span style="font-weight:700;">5-Day Corridor Rate Trend</span>
+                  <span style="font-size:0.75rem; color:var(--ai-cyan);">Model Confidence: <strong id="disp-confidence-score">82%</strong></span>
+                </div>
+                <div class="forecast-days-row" id="forecast-cells-container">
+                  <!-- Generated via JS -->
+                </div>
+              </div>
+
+              <!-- Goal Split Multi-Segment Bar -->
+              <div style="margin-top:20px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600;">
+                  <span>Allocated Family Goal Distribution</span>
+                  <span style="color:var(--upay-emerald-light);">Net Remittance</span>
+                </div>
+                
+                <div class="split-progress-bar">
+                  <div class="split-seg-rent" id="seg-rent" style="width: 50%;"></div>
+                  <div class="split-seg-school" id="seg-school" style="width: 30%;"></div>
+                  <div class="split-seg-savings" id="seg-savings" style="width: 20%;"></div>
+                </div>
+
+                <div class="split-legend">
+                  <div class="legend-item">
+                    <span class="legend-dot" style="background:var(--ai-indigo);"></span>
+                    <span>Rent: <strong id="disp-bdt-rent">BDT 33,890</strong></span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-dot" style="background:var(--upay-emerald);"></span>
+                    <span>School: <strong id="disp-bdt-school">BDT 20,334</strong></span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-dot" style="background:var(--accent-amber);"></span>
+                    <span>Savings: <strong id="disp-bdt-savings">BDT 13,556</strong></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Grounded AI Advice -->
+              <div class="ai-explainer-card">
+                <div class="ai-explainer-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/></svg>
+                  <span>Grounded AI Explainer (Strict JSON Input)</span>
+                </div>
+                <p class="ai-explainer-text" id="disp-ai-note">
+                  AED/BDT shows steady upward drift over the past 4 days. Peak liquidity window expected on Thursday before weekend settlement.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 2: ANALYST QUEUE (Nusrat) -->
+        <div class="sandbox-panel" id="panel-analyst">
+          <div class="sandbox-grid">
+            <div class="control-card">
+              <h4 class="control-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Select Injected Test Scenario</span>
+              </h4>
+
+              <p style="font-size:0.85rem; margin-bottom:16px;">Test the hybrid Isolation Forest + rule engine against synthetic fraud patterns:</p>
+
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-secondary scenario-picker-btn" data-scenario="normal" style="justify-content:flex-start; text-align:left;">
+                  <span class="pulse-dot" style="background:var(--upay-emerald); box-shadow:0 0 6px var(--upay-emerald);"></span>
+                  <div>
+                    <div style="font-weight:700;">Scenario A: Normal Expat Transfer</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Score ~14 &bull; Rahim to wife &bull; Instant Pass</div>
+                  </div>
+                </button>
+
+                <button class="btn btn-secondary scenario-picker-btn active" data-scenario="mule_ring" style="justify-content:flex-start; text-align:left;">
+                  <span class="pulse-dot" style="background:var(--accent-amber); box-shadow:0 0 6px var(--accent-amber);"></span>
+                  <div>
+                    <div style="font-weight:700;">Scenario B: Mule Ring Velocity Spike</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Score 78 &bull; 3 bursts in 45m &bull; Flagged</div>
+                  </div>
+                </button>
+
+                <button class="btn btn-secondary scenario-picker-btn" data-scenario="account_takeover" style="justify-content:flex-start; text-align:left;">
+                  <span class="pulse-dot" style="background:var(--accent-rose); box-shadow:0 0 6px var(--accent-rose);"></span>
+                  <div>
+                    <div style="font-weight:700;">Scenario C: Account Takeover Attempt</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Score 89 &bull; New device at 3 AM &bull; Flagged</div>
+                  </div>
+                </button>
+              </div>
+
+              <div style="margin-top:24px; padding:16px; background:var(--bg-darkest); border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+                <div style="font-size:0.82rem; font-weight:700; color:var(--text-secondary); margin-bottom:6px;">TRANSACTION METADATA</div>
+                <div id="risk-tx-info" style="font-size:0.88rem; color:var(--text-primary);">
+                  <strong>New Expat Account #8812</strong> &rarr; <strong>First-Time Receiver #904</strong> (AED 2,800)
+                </div>
+              </div>
+            </div>
+
+            <div class="result-card">
+              <div class="risk-meter-container">
+                <div class="risk-dial high" id="risk-dial-indicator">
+                  <div class="risk-score-num" id="risk-score-display">78</div>
+                  <div class="risk-score-label">Risk Index</div>
+                </div>
+
+                <div style="flex-grow:1;">
+                  <span class="risk-status-badge risk-badge-high" id="risk-status-badge">Status: Flagged for Review</span>
+                  <h4 style="font-size:1.15rem; margin-bottom:4px;" id="risk-level-display">High Risk Anomaly</h4>
+                  <p style="font-size:0.82rem; color:var(--text-secondary);">Evaluated by Isolation Forest v1.0 + Corridor Rule Engine</p>
+                  <span id="risk-suggested-action" style="font-size:0.75rem; font-weight:700; color:var(--accent-amber); background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:4px; margin-top:6px; display:inline-block;">Suggested: HOLD</span>
+                </div>
+              </div>
+
+              <div>
+                <span style="font-size:0.82rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Extracted Reason Codes (Explainability)</span>
+                <div class="reason-codes-grid" id="risk-reasons-container">
+                  <span class="reason-tag">NEW_RECEIVER</span>
+                  <span class="reason-tag">VELOCITY_3X</span>
+                  <span class="reason-tag">NEW_DEVICE</span>
+                  <span class="reason-tag">BURST_PATTERN</span>
+                </div>
+              </div>
+
+              <div class="ai-explainer-card" style="margin-top:14px;">
+                <div class="ai-explainer-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Analyst Briefing Narrative (Grounded LLM)</span>
+                </div>
+                <p class="ai-explainer-text" id="risk-explanation-text">
+                  3 separate transfers totaling BDT 2.7 Lakh in 45 minutes to a recipient registered today. Correlates with synthetic syndicate ring cluster #14.
+                </p>
+              </div>
+
+              <div style="margin-top:20px;">
+                <div style="font-size:0.82rem; font-weight:700; color:var(--text-secondary); margin-bottom:8px;">
+                  HUMAN REVIEW DECISION (Feeds into review_actions Table)
+                </div>
+                <div class="action-buttons-row">
+                  <button class="btn btn-approve" id="btn-analyst-approve" style="flex:1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Approve</span>
+                  </button>
+                  <button class="btn btn-hold" id="btn-analyst-hold" style="flex:1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    <span>Hold (24h)</span>
+                  </button>
+                  <button class="btn btn-escalate" id="btn-analyst-escalate" style="flex:1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>Escalate</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 3: RECEIVER PORTAL (Amina) -->
+        <div class="sandbox-panel" id="panel-receiver">
+          <div class="sandbox-grid">
+            <div class="control-card">
+              <h4 class="control-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <span>ভাষা ও বিজ্ঞপ্তি সেটিংস</span>
+              </h4>
+
+              <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-darkest); padding:14px 18px; border-radius:var(--radius-md);">
+                <div>
+                  <div style="font-weight:700; font-size:0.95rem;">Language / ভাষা নির্বাচন</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">Toggle English &harr; বাংলা</div>
+                </div>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                  <span style="font-size:0.85rem; font-weight:700; color:var(--upay-emerald-light);">বাংলা</span>
+                  <input type="checkbox" id="receiver-lang-toggle" style="width:20px; height:20px; cursor:pointer;">
+                  <span style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">EN</span>
+                </label>
+              </div>
+
+              <div style="margin-top:20px;">
+                <button class="audio-preview-btn" id="btn-play-voice-summary" style="width:100%; justify-content:center; padding:12px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  <span>Play Voice Audio (শুনুন)</span>
+                </button>
+              </div>
+
+              <div style="margin-top:24px; padding:16px; background:rgba(16,185,129,0.08); border-radius:var(--radius-sm); border:1px solid rgba(16,185,129,0.2);">
+                <div style="font-size:0.82rem; font-weight:700; color:var(--upay-emerald-light); margin-bottom:4px;">সহজ হিসাব নীতি (No Hidden Fees)</div>
+                <p style="font-size:0.8rem; color:var(--text-secondary);">
+                  গ্রামের সাধারণ গ্রাহকদের জন্য হিসাবকে স্বচ্ছ রাখতে প্রেরক কত পাঠালেন, কত জমা হলো এবং কোনো লুকানো খরচ কাটা হয়েছে কি না—তা সহজ ভাষায় বুঝিয়ে দেওয়া হয়।
+                </p>
+              </div>
+            </div>
+
+            <div class="result-card bangla-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="ticker-badge">upay রেমিট্যান্স নোটিফিকেশন</span>
+                <span style="font-size:0.75rem; color:var(--text-secondary);">আজ বিকাল ৪:২০</span>
+              </div>
+
+              <h3 id="rcv-title" style="margin-top:14px; font-size:1.4rem; color:var(--text-primary);">
+                টাকা আসার সহজ বিবরণ (upay রেমিট্যান্স)
+              </h3>
+
+              <div class="bangla-highlight" id="rcv-summary-text">
+                আপনার কাছে দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট <span style="color:var(--upay-emerald-light);">৬৭,৭৮০ টাকা</span> নিরাপদে পৌঁছেছে।
+              </div>
+
+              <div id="rcv-fee-info" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:18px;">
+                কোনো গোপন বা বাড়তি চার্জ কাটা হয়নি | নেটওয়ার্ক: উপায় বাংলাদেশ
+              </div>
+
+              <div style="background:var(--bg-darkest); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle); margin-bottom:18px;">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--ai-cyan); margin-bottom:10px;">
+                  প্রস্তাবিত খরচের ভাগ:
+                </div>
+                <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:0.88rem;">
+                  <li style="display:flex; justify-content:space-between;">
+                    <span>ঘরভাড়া ও সংসার খরচ (৫০%)</span>
+                    <strong>৳৩৩,৮৯০</strong>
+                  </li>
+                  <li style="display:flex; justify-content:space-between;">
+                    <span>ছেলেমেয়ের স্কুলের ফি (৩০%)</span>
+                    <strong>৳২০,৩৩৪</strong>
+                  </li>
+                  <li style="display:flex; justify-content:space-between;">
+                    <span>ভবিষ্যতের জন্য সঞ্চয় (২০%)</span>
+                    <strong>৳১৩,৫৫৬</strong>
+                  </li>
+                </ul>
+              </div>
+
+              <div id="rcv-agent-tip" style="font-size:0.82rem; color:var(--upay-emerald-light); display:flex; align-items:center; gap:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                <span>কাছের উপায় এজেন্ট করিম চাচার দোকানে পর্যাপ্ত ক্যাশ টাকা প্রস্তুত আছে।</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: AGENT FORECAST (Karim) -->
+        <div class="sandbox-panel" id="panel-agent">
+          <div class="sandbox-grid">
+            <div class="control-card">
+              <h4 class="control-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <span>Agent Point Cash Management</span>
+              </h4>
+
+              <div class="form-group">
+                <label class="form-label">
+                  <span>Agent District</span>
+                  <span style="color:var(--upay-emerald-light);">Balaganj, Sylhet</span>
+                </label>
+                <input type="text" class="form-input" value="Agent Point #AG-05 (Karim Store)" readonly style="opacity:0.8;">
+              </div>
+
+              <div class="form-group">
+                <label for="agent-cash-slider" class="form-label">
+                  <span>Current Physical Cash-on-Hand</span>
+                  <span id="agent-cash-val" style="color:var(--upay-gold); font-weight:700;">BDT 300,000</span>
+                </label>
+                <input type="range" id="agent-cash-slider" class="range-slider" min="50000" max="600000" step="10000" value="300000">
+              </div>
+
+              <div style="padding:16px; background:rgba(244,63,94,0.08); border-radius:var(--radius-md); border:1px solid rgba(244,63,94,0.25); margin-top:16px;">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--accent-rose); display:flex; align-items:center; gap:8px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span>Festival Proximity Multiplier</span>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:6px;">
+                  Eid-ul-Fitr arrives in 4 days. Historical data demonstrates a <strong>2.5x demand surge</strong> as migrant families withdraw money for shopping and feast preparation.
+                </p>
+              </div>
+
+              <button class="btn btn-glow" style="width:100%; margin-top:20px;" onclick="showToast('Liquidity top-up dispatch request transmitted to upay Regional Cash Hub!')">
+                <span>Request Cash Dispatch</span>
+              </button>
+            </div>
+
+            <div class="result-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h4 style="font-size:1.1rem;">7-Day Projected Cash-Out Demand</h4>
+                <span style="font-size:0.75rem; color:var(--text-muted);">Model: Gradient Boosted Regressor</span>
+              </div>
+
+              <div class="agent-bars-container">
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val">180k</span>
+                  <div class="agent-bar" style="height: 38%;"></div>
+                  <span class="agent-bar-label">Mon</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val">210k</span>
+                  <div class="agent-bar" style="height: 44%;"></div>
+                  <span class="agent-bar-label">Tue</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val">260k</span>
+                  <div class="agent-bar" style="height: 55%;"></div>
+                  <span class="agent-bar-label">Wed</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val" style="color:var(--accent-rose);">420k</span>
+                  <div class="agent-bar spike" style="height: 92%;"></div>
+                  <span class="agent-bar-label" style="color:var(--accent-rose); font-weight:700;">Thu (Eid)</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val" style="color:var(--accent-rose);">390k</span>
+                  <div class="agent-bar spike" style="height: 85%;"></div>
+                  <span class="agent-bar-label" style="color:var(--accent-rose);">Fri</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val">220k</span>
+                  <div class="agent-bar" style="height: 48%;"></div>
+                  <span class="agent-bar-label">Sat</span>
+                </div>
+                <div class="agent-bar-col">
+                  <span class="agent-bar-val">160k</span>
+                  <div class="agent-bar" style="height: 34%;"></div>
+                  <span class="agent-bar-label">Sun</span>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; flex-wrap:wrap; gap:12px;">
+                <div class="floating-pill" id="agent-topup-status" style="border-color:rgba(244,63,94,0.4); color:var(--accent-rose);">
+                  <span class="pulse-dot" style="background:var(--accent-rose); box-shadow:0 0 10px var(--accent-rose);"></span>
+                  <span>Top-up Alert: Shortfall of BDT 120,000 by Eid Eve</span>
+                </div>
+
+                <div style="text-align:right;">
+                  <div style="font-size:0.75rem; color:var(--text-muted);">Recommended Top-up:</div>
+                  <div id="agent-topup-needed" style="font-size:1.35rem; font-weight:800; color:var(--accent-amber);">BDT 120,000</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- The 4 AI Engines Architecture Deep-Dive -->
+  <section class="pillars-section" id="engines">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Machine Learning Architecture</span>
+        <h2 class="section-title">The 4 AI Engines Behind RemitMind</h2>
+        <p class="section-desc">Designed strictly in accordance with the ML Specification: statistical models for numbers, strict business rules in rules.py, and grounded language for humans.</p>
+      </div>
+
+      <div class="pillars-grid">
+        <div class="pillar-card">
+          <div class="pillar-icon emerald">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <h3 class="pillar-title">1. Rate & Send-Time Forecaster</h3>
+          <p class="pillar-desc">
+            Evaluates 14-day rolling corridor rate movements using moving averages and linear drift models. Outputs 5-day expected rates, optimal dispatch window, and volatility-derived confidence scores.
+          </p>
+          <div class="pillar-meta">
+            <span>Algorithm: Linear Trend + MA</span>
+            <span class="pillar-tech">Target: &ge; 8% Fee Saved</span>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon cyan">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <h3 class="pillar-title">2. Hybrid Isolation Forest</h3>
+          <p class="pillar-desc">
+            Unsupervised anomaly detection trained on 5,000 synthetic transfers. Examines 30-day amount z-scores, velocity, new device fingerprints, and receiver clustering. Blended with deterministic rule bonuses for zero auto-blocks.
+          </p>
+          <div class="pillar-meta">
+            <span>Algorithm: Isolation Forest</span>
+            <span class="pillar-tech">Recall: &ge; 70% at Top 10%</span>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon amber">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3 class="pillar-title">3. Agent Demand Predictor</h3>
+          <p class="pillar-desc">
+            Forecasts 7-day physical cash-out demand for 20 rural agent points. Factors in days-to-festival (Eid 2.5x multiplier), day-of-week cycles, and rolling means to prevent agent insolvency.
+          </p>
+          <div class="pillar-meta">
+            <span>Algorithm: Gradient Boosted Regressor</span>
+            <span class="pillar-tech">Target: &le; 20% MAPE</span>
+          </div>
+        </div>
+
+        <div class="pillar-card">
+          <div class="pillar-icon purple">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <h3 class="pillar-title">4. Grounded LLM Explainer</h3>
+          <p class="pillar-desc">
+            Takes strict structured JSON only (scores, reason codes, numbers). Translates math into plain Bangla for receivers and actionable narratives for risk analysts. Features zero-downtime template fallback.
+          </p>
+          <div class="pillar-meta">
+            <span>Input: Strictly Structured JSON</span>
+            <span class="pillar-tech">Fallback: Template Engine</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Responsible AI & Governance Grid -->
+  <section class="ethics-section" id="responsible-ai">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Governance & Ethics</span>
+        <h2 class="section-title">Responsible AI by Design</h2>
+        <p class="section-desc">Strict compliance with responsible AI principles: building trust through explainability, human agency, and transparent auditing.</p>
+      </div>
+
+      <div class="ethics-grid">
+        <div class="ethics-card">
+          <div class="ethics-card-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ai-cyan)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <h4 class="ethics-card-title">100% Synthetic Data</h4>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary);">
+            Zero real PII or bank records used. Generated using reproducible random seed with 5,000 synthetic transfers across 90 days.
+          </p>
+        </div>
+
+        <div class="ethics-card">
+          <div class="ethics-card-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h4 class="ethics-card-title">Zero Unchecked Auto-Blocks</h4>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary);">
+            AI cannot autonomously deny funds. Medium and high scores are routed to human analysts who retain full discretion.
+          </p>
+        </div>
+
+        <div class="ethics-card">
+          <div class="ethics-card-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <h4 class="ethics-card-title">Disaggregated Fairness Auditing</h4>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary);">
+            Dedicated endpoint /metrics/fairness monitors alert rates across corridors and ticket sizes to eliminate bias.
+          </p>
+        </div>
+
+        <div class="ethics-card">
+          <div class="ethics-card-header">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ai-indigo)" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <h4 class="ethics-card-title">Analyst Feedback Loop</h4>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-secondary);">
+            Analyst decisions record is_fraud_label into the database, powering supervised retraining without cold-start problems.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive API Docs Playground -->
+  <section class="api-section" id="api-specs">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">FastAPI Service Layer</span>
+        <h2 class="section-title">Developer & Integration Ready</h2>
+        <p class="section-desc">Fully documented REST API with auto-generated Swagger UI at /docs.</p>
+      </div>
+
+      <div class="code-container">
+        <div class="code-top-bar">
+          <div class="code-dots">
+            <span class="code-dot red"></span>
+            <span class="code-dot yellow"></span>
+            <span class="code-dot green"></span>
+          </div>
+
+          <div class="api-tabs-nav">
+            <button class="api-tab-btn active" data-endpoint="plan">POST /plans/recommend</button>
+            <button class="api-tab-btn" data-endpoint="transfer">POST /transfers</button>
+            <button class="api-tab-btn" data-endpoint="alert">GET /analyst/alerts/{id}</button>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" onclick="showToast('API snippet copied to clipboard!')">Copy JSON</button>
+        </div>
+
+        <pre class="code-content"><code id="api-code-snippet">// POST /api/v1/plans/recommend
+{
+  "sender_id": "u_101",
+  "receiver_id": "u_202",
+  "corridor": "AED_BDT",
+  "amount_src": 2000,
+  "goals": [
+    { "name": "rent", "share_pct": 50 },
+    { "name": "school", "share_pct": 30 },
+    { "name": "savings", "share_pct": 20 }
+  ]
+}
+
+// Response 200 OK
+{
+  "best_day": "2026-10-08",
+  "send_now": { "amount_bdt": 66400, "fee_bdt": 1328 },
+  "send_best": { "amount_bdt": 67780, "fee_bdt": 1220 },
+  "expected_saving_bdt": 1380,
+  "confidence": 0.82,
+  "split": [
+    { "name": "rent", "bdt": 33890 },
+    { "name": "school", "bdt": 20334 },
+    { "name": "savings", "bdt": 13556 }
+  ],
+  "explanation": "AED/BDT has gained momentum for 4 consecutive days. Sending Thursday saves BDT 1,380."
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-title" style="margin-bottom:12px;">RemitMind <span style="font-size:0.75rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px;">AI</span></div>
+          <p style="font-size:0.85rem; max-width:320px; margin-bottom:16px;">
+            AI-powered remittance intelligence & safety layer engineered for upay Bangladesh. Built for transparency, fee savings, and human-in-the-loop fraud defense.
+          </p>
+          <div style="font-size:0.75rem; color:var(--text-muted);">
+            Compliant with submission rules 4.4, 4.5, 5.3, 9.3, 9.4.
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Applications</h4>
+          <ul class="footer-links">
+            <li><a href="app.html" class="footer-link">Open Full Web App</a></li>
+            <li><a href="app.html#pay" class="footer-link">International Payment</a></li>
+            <li><a href="app.html#analyst" class="footer-link">Risk Ops Console</a></li>
+            <li><a href="app.html#agent" class="footer-link">Agent Liquidity Radar</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Documentation</h4>
+          <ul class="footer-links">
+            <li><a href="01_PRD.md" class="footer-link">Product Requirements</a></li>
+            <li><a href="02_TRD.md" class="footer-link">Tech Architecture</a></li>
+            <li><a href="05_API_DOCS.md" class="footer-link">API Reference</a></li>
+            <li><a href="06_ML_SPEC.md" class="footer-link">Machine Learning</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">System Status</h4>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:0.82rem;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="pulse-dot"></span>
+              <span>FastAPI Backend: Ready</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="pulse-dot" style="background:var(--ai-cyan); box-shadow:0 0 8px var(--ai-cyan);"></span>
+              <span>ML: Isolation Forest v1</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="pulse-dot" style="background:var(--upay-gold); box-shadow:0 0 8px var(--upay-gold);"></span>
+              <span>DB: SQLite Schema Ready</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 RemitMind &bull; Powered by upay AI Innovation Initiative. All rights reserved.</div>
+        <div style="display:flex; gap:16px;">
+          <span>Synthetic Environment</span>
+          <span>Zero Real PII</span>
+          <span>100% Explainable</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
