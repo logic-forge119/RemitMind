@@ -47,6 +47,8 @@ htmlcov/
 .nox/
 
 # Database files (auto-generated on startup or seed)
+*.db
+*.sqlite3
 *.db-journal
 *.sqlite3-journal
 
