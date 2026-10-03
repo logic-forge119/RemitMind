@@ -72,17 +72,17 @@ remitmind/
 │   ├── PROJECT_REPORT.md        # Comprehensive hackathon project submission report
 │   ├── AI_LOG.md                # Rule GR §5.6 AI prompts & tool disclosure catalog
 │   └── UPDATES_AND_TRACKS.md    # Multi-track roadmap, Mermaid graphs & benchmarks
+├── SUBMISSION_SHOWCASE.md   # Complete project showcase & hackathon report
 ├── frontend/
 │   ├── index.html               # Main landing page with live interactive sandbox
 │   ├── app.html                 # Full web app with international payment gateway
 │   ├── css/
-│   │   ├── style.css            # Base design system & light/dark modes
+│   │   ├── style.css            # Base design system, Apple Left Dock, light/dark
 │   │   └── app.css              # Dedicated web app & payment styles
-│   ├── js/
-│   │   ├── app.js               # Landing page interactive sandbox engine
-│   │   └── main_app.js          # Full web app engine connected to API
-│   └── assets/
-│       └── hero_banner.jpg      # High-resolution concept art visual
+│   └── js/
+│       ├── dock.js              # Apple Style Left Dock engine with spring physics
+│       ├── app.js               # Landing page interactive sandbox engine
+│       └── main_app.js          # Full web app engine connected to API
 └── README.md
 ```
 

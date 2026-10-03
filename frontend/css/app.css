@@ -85,10 +85,22 @@
 /* Main Content Area */
 .app-main {
   flex-grow: 1;
-  padding: 32px 24px;
+  padding: 32px 24px 100px 24px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
+}
+
+@media (min-width: 769px) {
+  .app-header {
+    padding-left: clamp(125px, 9.5vw, 160px);
+    padding-right: clamp(40px, 5.5vw, 90px);
+  }
+
+  .app-main {
+    padding-left: clamp(125px, 9.5vw, 160px);
+    padding-right: clamp(40px, 5.5vw, 90px);
+  }
 }
 
 .app-view {

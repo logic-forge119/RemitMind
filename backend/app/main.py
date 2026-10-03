@@ -97,3 +97,8 @@ if FRONTEND_DIR.exists():
     def serve_main_app():
         return FileResponse(str(FRONTEND_DIR / "app.html"))
 
+    @app.get("/login", tags=["Frontend"])
+    @app.get("/login.html", tags=["Frontend"])
+    def serve_login_page():
+        return FileResponse(str(FRONTEND_DIR / "login.html"))
+

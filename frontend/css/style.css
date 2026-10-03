@@ -189,6 +189,21 @@ a {
   z-index: 1;
 }
 
+/* Ensure generous clearance and balanced breathing room on both sides
+   so the left-side vertical dock never touches or connects with any text.
+   Provides a clean gap on both the left (screen edge to dock) and right (dock to text),
+   as well as balanced breathing room on the right side of the page. */
+@media (min-width: 769px) {
+  .apple-dock-wrapper {
+    left: 24px;
+  }
+
+  .container {
+    padding-left: clamp(125px, 9.5vw, 160px);
+    padding-right: clamp(40px, 5.5vw, 90px);
+  }
+}
+
 /* Ticker Bar */
 .ticker-bar {
   background: var(--bg-secondary);
@@ -258,15 +273,31 @@ a {
 }
 
 .logo-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--upay-emerald) 0%, var(--ai-cyan) 100%);
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px var(--upay-emerald-glow);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
   position: relative;
+  padding: 4px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.logo-icon:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 26px rgba(6, 182, 212, 0.45);
+}
+
+.logo-icon img,
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .logo-icon svg {
@@ -1201,6 +1232,45 @@ a {
   color: white;
 }
 
+.audio-preview-btn.playing {
+  background: linear-gradient(135deg, var(--upay-emerald) 0%, var(--ai-cyan) 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0 20px var(--upay-emerald-glow);
+  animation: audioPulse 1.5s infinite;
+}
+
+@keyframes audioPulse {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.voice-wave-bars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+  margin-right: 4px;
+}
+
+.voice-wave-bar {
+  width: 3px;
+  height: 100%;
+  background: currentColor;
+  border-radius: 2px;
+  animation: waveBar 0.8s ease-in-out infinite alternate;
+}
+.voice-wave-bar:nth-child(1) { animation-delay: 0.1s; height: 50%; }
+.voice-wave-bar:nth-child(2) { animation-delay: 0.3s; height: 100%; }
+.voice-wave-bar:nth-child(3) { animation-delay: 0.2s; height: 75%; }
+.voice-wave-bar:nth-child(4) { animation-delay: 0.4s; height: 60%; }
+
+@keyframes waveBar {
+  0% { transform: scaleY(0.25); }
+  100% { transform: scaleY(1); }
+}
+
 /* Tab 4: Agent Liquidity Bars */
 .agent-bars-container {
   display: grid;
@@ -1373,79 +1443,11 @@ a {
   color: var(--text-primary);
 }
 
-/* API Section */
-.api-section {
-  padding: 80px 0;
-}
-
-.code-container {
-  background: #06090e;
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-}
-
-.code-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  background: rgba(18, 24, 38, 0.9);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.code-dots {
-  display: flex;
-  gap: 8px;
-}
-
-.code-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.code-dot.red { background: #ef4444; }
-.code-dot.yellow { background: #f59e0b; }
-.code-dot.green { background: #10b981; }
-
-.api-tabs-nav {
-  display: flex;
-  gap: 8px;
-}
-
-.api-tab-btn {
-  background: transparent;
-  border: none;
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  color: #94a3b8;
-  font-size: 0.82rem;
-  font-family: var(--font-mono);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.api-tab-btn.active {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-}
-
-.code-content {
-  padding: 24px;
-  font-family: var(--font-mono);
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: #e2e8f0;
-  overflow-x: auto;
-}
-
 /* Footer */
 .footer {
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-subtle);
-  padding: 60px 0 30px 0;
+  padding: 60px 0 100px 0;
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
@@ -1523,3 +1525,403 @@ a {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   Apple Style Dock Component (Shifted to Left Side)
+   macOS-Style Magnification, Vertical Left Dock, Floating DockLabel & Modals
+   ========================================================================== */
+
+.apple-dock-wrapper {
+  position: fixed;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  bottom: auto;
+  z-index: 9999;
+  pointer-events: none;
+  padding: 0;
+  max-height: 90vh;
+}
+
+.apple-dock {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 10px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  box-shadow: 
+    0 24px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 30px rgba(16, 185, 129, 0.12);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+}
+
+/* Light Mode Dock Palette */
+[data-theme="light"] .apple-dock {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 0 25px rgba(16, 185, 129, 0.08);
+}
+
+.dock-item {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  aspect-ratio: 1 / 1;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transform-origin: center left;
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  
+  /* Dark Mode Default */
+  background: #262626; /* neutral-800 */
+  color: #d4d4d4;      /* neutral-300 */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Light Mode Item */
+[data-theme="light"] .dock-item {
+  background: #e5e7eb; /* gray-200 */
+  color: #525252;      /* neutral-600 */
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.dock-item:hover {
+  background: #404040;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] .dock-item:hover {
+  background: #d1d5db;
+  color: #171717;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Active indicator dot on left side */
+.dock-item.active::after {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--upay-emerald);
+  box-shadow: 0 0 8px var(--upay-emerald);
+}
+
+/* Dock Icon SVG container */
+.dock-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.dock-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2;
+  transition: transform 0.2s ease;
+}
+
+/* Floating DockLabel Tooltip (Appears to the right of the vertical left dock) */
+.dock-label {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  transform: translateY(-50%) translateX(-6px);
+  opacity: 0;
+  pointer-events: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 0.94);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10001;
+}
+
+[data-theme="light"] .dock-label {
+  background: rgba(255, 255, 255, 0.95);
+  color: #1f2937;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.dock-item:hover .dock-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Tooltip Little Arrow pointing to the left toward the icon */
+.dock-label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  bottom: auto;
+  transform: translateY(-50%) rotate(45deg);
+  width: 6px;
+  height: 6px;
+  background: inherit;
+  border-left: 1px solid inherit;
+  border-bottom: 1px solid inherit;
+  border-right: none;
+  border-top: none;
+}
+
+/* Responsive adjustment for Mobile screens (dock reverts to bottom) */
+@media (max-width: 768px) {
+  .apple-dock-wrapper {
+    top: auto;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    padding: 0 8px;
+  }
+  .apple-dock {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px 12px 10px 12px;
+  }
+  .dock-item {
+    width: 38px;
+    height: 38px;
+    transform-origin: bottom center;
+  }
+  .dock-item.active::after {
+    left: 50%;
+    top: auto;
+    bottom: -6px;
+    transform: translateX(-50%);
+  }
+  .dock-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .dock-label {
+    display: none; /* Hide hover labels on touch devices */
+  }
+}
+
+/* ==========================================================================
+   Dock Modals (Change Log & Email)
+   ========================================================================== */
+
+.dock-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10005;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.dock-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dock-modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dock-modal-dialog {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 580px;
+  max-height: 85vh;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(16, 185, 129, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.92) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.dock-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+}
+
+.dock-modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dock-modal-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dock-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+.dock-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* Changelog Timeline */
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.changelog-entry {
+  border-left: 2px solid var(--upay-emerald);
+  padding-left: 16px;
+  position: relative;
+}
+
+.changelog-entry::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--upay-emerald);
+  box-shadow: 0 0 8px var(--upay-emerald);
+}
+
+.changelog-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--upay-emerald-light);
+  margin-bottom: 6px;
+}
+
+.changelog-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.changelog-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Email Contact Form */
+.dock-form-group {
+  margin-bottom: 16px;
+}
+
+.dock-form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.dock-form-group input,
+.dock-form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.dock-form-group input:focus,
+.dock-form-group textarea:focus {
+  outline: none;
+  border-color: var(--upay-emerald);
+  box-shadow: 0 0 0 3px var(--upay-emerald-glow);
+}
+
+.dock-form-group textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+

@@ -1,0 +1,469 @@
+/* ==========================================================================
+   Interactive 3D Credit Card Form Styles
+   Inspired by: rahil1202/credit-card-form (21st.dev / shadcn)
+   Engineered for: RemitMind / Upay AI Platform
+   ========================================================================== */
+
+/* --- 3D Perspective Scene Container --- */
+.card-3d-wrapper {
+  perspective: 1200px;
+  width: 100%;
+  max-width: 400px;
+  height: 240px;
+  margin: 0 auto 24px auto;
+  position: relative;
+  user-select: none;
+}
+
+/* --- Card Flipping Element --- */
+#creditCard.card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+#creditCard.card.flip {
+  transform: rotateY(180deg);
+}
+
+/* --- Card Faces (Front & Back) --- */
+.card__front,
+.card__back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.65),
+    0 0 30px rgba(16, 185, 129, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, #090d16 0%, #111a2d 42%, #0a1122 100%);
+  color: #ffffff;
+}
+
+/* Holographic dynamic sheen overlay */
+.card__front::before,
+.card__back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.22), transparent 45%),
+    radial-gradient(circle at 15% 85%, rgba(6, 182, 212, 0.18), transparent 45%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%, rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Subtle circuit background pattern */
+.card-hologram-mesh {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Front Face Inner Layout */
+.card__front {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+/* --- Gliding Highlight Frame (#highlight) --- */
+#highlight {
+  position: absolute;
+  border: 2px solid #10b981;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 4;
+}
+
+#highlight.hidden,
+#highlight:not([class*="highlight__"]) {
+  opacity: 0;
+  transform: scale(0.95);
+  pointer-events: none;
+}
+
+#highlight.highlight__number {
+  top: 92px;
+  left: 14px;
+  width: calc(100% - 28px);
+  height: 48px;
+  opacity: 1;
+  transform: scale(1);
+}
+
+#highlight.highlight__holder {
+  bottom: 14px;
+  left: 14px;
+  width: 60%;
+  height: 52px;
+  opacity: 1;
+  transform: scale(1);
+}
+
+#highlight.highlight__expire {
+  bottom: 14px;
+  right: 14px;
+  width: 30%;
+  height: 52px;
+  opacity: 1;
+  transform: scale(1);
+}
+
+#highlight.highlight__cvv {
+  opacity: 0;
+}
+
+/* --- Card Front Elements --- */
+.card-front-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+}
+
+/* Authentic Gold EMV Chip */
+.card-emv-chip {
+  width: 44px;
+  height: 34px;
+  background: linear-gradient(135deg, #facc15 0%, #ca8a04 50%, #eab308 100%);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.45), 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(254, 240, 138, 0.4);
+}
+
+.card-emv-chip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(113, 63, 18, 0.55);
+}
+
+.card-emv-chip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: rgba(113, 63, 18, 0.55);
+}
+
+.card-emv-chip-core {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  border: 1px solid rgba(113, 63, 18, 0.55);
+  border-radius: 3px;
+}
+
+.card-top-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-contactless-icon {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.card-brand-logo {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #ffffff 0%, #a7f3d0 60%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-brand-circles {
+  display: flex;
+  align-items: center;
+}
+
+.card-brand-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  opacity: 0.88;
+}
+
+.card-brand-circle.red {
+  background: #ef4444;
+  margin-right: -8px;
+}
+
+.card-brand-circle.yellow {
+  background: #f59e0b;
+}
+
+/* --- 16-Slot Rolling Card Number --- */
+.card-number-wrapper {
+  position: relative;
+  z-index: 3;
+  margin: 14px 0;
+}
+
+#card_number_slots {
+  display: flex;
+  align-items: center;
+  font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #f8fafc;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  padding: 4px 6px;
+}
+
+/* Slot and Rolling Digit */
+#card_number_slots .slot {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 26px;
+  overflow: hidden;
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Gap after every 4 digits */
+#card_number_slots .slot:nth-child(4n) {
+  margin-right: 14px;
+}
+
+#card_number_slots .slot:last-child {
+  margin-right: 0;
+}
+
+#card_number_slots .digit {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+#card_number_slots .digit.filed {
+  transform: translateY(-26px);
+}
+
+#card_number_slots .digit .row {
+  height: 26px;
+  line-height: 26px;
+  text-align: center;
+  display: block;
+}
+
+#card_number_slots .digit .placeholder {
+  color: #64748b;
+  opacity: 0.7;
+}
+
+#card_number_slots .digit .value {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+/* --- Card Front Bottom (Holder & Expiration) --- */
+.card-front-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 3;
+}
+
+.card-field-group {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+}
+
+.card-field-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 2px;
+}
+
+#card_holder_display {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-expires-wrapper {
+  text-align: right;
+  font-family: 'SF Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: 0.08em;
+}
+
+/* --- Card Back Face --- */
+.card__back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0 0 20px 0;
+  z-index: 2;
+}
+
+.card-back-magnetic-strip {
+  width: 100%;
+  height: 48px;
+  background: #050810;
+  margin-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.card-back-cvv-section {
+  padding: 0 24px;
+}
+
+.card-back-cvv-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-align: right;
+  margin-bottom: 4px;
+}
+
+.card-back-signature-bar {
+  background: #f8fafc;
+  border-radius: 6px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 14px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+  position: relative;
+  background-image: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 10px, #ffffff 10px, #ffffff 20px);
+}
+
+#card_cvv_display {
+  font-family: 'SF Mono', 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: #0f172a;
+}
+
+.card-back-disclaimer {
+  padding: 0 24px;
+  font-size: 0.62rem;
+  color: #64748b;
+  line-height: 1.4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-back-hologram-seal {
+  width: 32px;
+  height: 24px;
+  background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 50%, #64748b 100%);
+  border-radius: 4px;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+  opacity: 0.8;
+}
+
+/* --- Form Improvements for 3D Card Integration --- */
+.card-expiry-select-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.card-form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg-darkest);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition-fast);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+}
+
+.card-form-select:focus {
+  border-color: var(--upay-emerald);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.card-input-tip {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-error-text {
+  font-size: 0.78rem;
+  color: #ef4444;
+  margin-top: 5px;
+  font-weight: 500;
+  display: none;
+}

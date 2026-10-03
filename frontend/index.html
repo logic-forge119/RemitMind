@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -53,9 +56,7 @@
       <div class="nav-wrapper">
         <a href="#hero" class="nav-logo" id="brand-logo-link">
           <div class="logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
+            <img src="assets/remitmind-emblem.png" alt="RemitMind AI Logo" class="brand-logo-img">
           </div>
           <div class="logo-text-group">
             <span class="logo-title">RemitMind <span style="font-size:0.72rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px; font-weight:700;">AI</span></span>
@@ -68,7 +69,6 @@
           <li><a href="#sandbox" class="nav-link" id="nav-sandbox">Live AI Sandbox</a></li>
           <li><a href="#engines" class="nav-link" id="nav-engines">The 4 Engines</a></li>
           <li><a href="#responsible-ai" class="nav-link" id="nav-ethics">Responsible AI</a></li>
-          <li><a href="#api-specs" class="nav-link" id="nav-api">API Specs</a></li>
         </ul>
 
         <div class="nav-actions">
@@ -89,6 +89,11 @@
               </svg>
             </span>
           </button>
+
+          <a href="login.html" class="btn btn-secondary btn-sm" id="btn-nav-login" style="display:inline-flex; align-items:center; gap:0.4rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Sign In</span>
+          </a>
 
           <a href="#sandbox" class="btn btn-secondary btn-sm" id="btn-nav-demo">Simulator</a>
           
@@ -156,28 +161,6 @@
           <div class="stat-number">100<span>%</span></div>
           <div class="stat-label">Human-in-the-Loop</div>
           <div class="stat-caption">Zero autonomous blocking of remittances</div>
-        </div>
-      </div>
-
-      <!-- Hero Visual Banner Frame -->
-      <div class="hero-visual-container" id="hero-banner-frame">
-        <div class="hero-visual-inner">
-          <img src="assets/hero_banner.jpg" alt="RemitMind AI Remittance and Fraud Defense Visual" class="hero-img" id="hero-visual-img">
-          
-          <div class="hero-badges-overlay">
-            <div class="floating-pill">
-              <span class="pulse-dot"></span>
-              <span>Corridor: Dubai (AED) &rarr; Sylhet, BD (BDT)</span>
-            </div>
-            <div class="floating-pill" style="border-color: rgba(6,182,212,0.4); color: var(--ai-cyan);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              <span>Isolation Forest: Anomaly Score 14 (Safe)</span>
-            </div>
-            <div class="floating-pill" style="border-color: rgba(245,158,11,0.4); color: var(--accent-amber);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>Optimal Timing: Thursday (+ BDT 1,380 Saved)</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -851,69 +834,17 @@
     </div>
   </section>
 
-  <!-- Interactive API Docs Playground -->
-  <section class="api-section" id="api-specs">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">FastAPI Service Layer</span>
-        <h2 class="section-title">Developer & Integration Ready</h2>
-        <p class="section-desc">Fully documented REST API with auto-generated Swagger UI at /docs.</p>
-      </div>
-
-      <div class="code-container">
-        <div class="code-top-bar">
-          <div class="code-dots">
-            <span class="code-dot red"></span>
-            <span class="code-dot yellow"></span>
-            <span class="code-dot green"></span>
-          </div>
-
-          <div class="api-tabs-nav">
-            <button class="api-tab-btn active" data-endpoint="plan">POST /plans/recommend</button>
-            <button class="api-tab-btn" data-endpoint="transfer">POST /transfers</button>
-            <button class="api-tab-btn" data-endpoint="alert">GET /analyst/alerts/{id}</button>
-          </div>
-
-          <button class="btn btn-secondary btn-sm" onclick="showToast('API snippet copied to clipboard!')">Copy JSON</button>
-        </div>
-
-        <pre class="code-content"><code id="api-code-snippet">// POST /api/v1/plans/recommend
-{
-  "sender_id": "u_101",
-  "receiver_id": "u_202",
-  "corridor": "AED_BDT",
-  "amount_src": 2000,
-  "goals": [
-    { "name": "rent", "share_pct": 50 },
-    { "name": "school", "share_pct": 30 },
-    { "name": "savings", "share_pct": 20 }
-  ]
-}
-
-// Response 200 OK
-{
-  "best_day": "2026-10-08",
-  "send_now": { "amount_bdt": 66400, "fee_bdt": 1328 },
-  "send_best": { "amount_bdt": 67780, "fee_bdt": 1220 },
-  "expected_saving_bdt": 1380,
-  "confidence": 0.82,
-  "split": [
-    { "name": "rent", "bdt": 33890 },
-    { "name": "school", "bdt": 20334 },
-    { "name": "savings", "bdt": 13556 }
-  ],
-  "explanation": "AED/BDT has gained momentum for 4 consecutive days. Sending Thursday saves BDT 1,380."
-}</code></pre>
-      </div>
-    </div>
-  </section>
-
   <!-- Footer -->
   <footer class="footer">
     <div class="container">
       <div class="footer-grid">
         <div>
-          <div class="logo-title" style="margin-bottom:12px;">RemitMind <span style="font-size:0.75rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px;">AI</span></div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div class="logo-icon" style="width:36px; height:36px; border-radius:10px; padding:3px;">
+              <img src="assets/remitmind-emblem.png" alt="RemitMind AI Logo" class="brand-logo-img">
+            </div>
+            <div class="logo-title" style="margin-bottom:0; font-size:1.25rem;">RemitMind <span style="font-size:0.75rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px;">AI</span></div>
+          </div>
           <p style="font-size:0.85rem; max-width:320px; margin-bottom:16px;">
             AI-powered remittance intelligence & safety layer engineered for upay Bangladesh. Built for transparency, fee savings, and human-in-the-loop fraud defense.
           </p>
@@ -972,7 +903,179 @@
     </div>
   </footer>
 
-  <!-- Script -->
+  <!-- Apple Style Dock Navigation Bar -->
+  <div class="apple-dock-wrapper" id="apple-dock-nav">
+    <div class="apple-dock" role="navigation" aria-label="Apple Style Navigation Dock">
+      <!-- 1. Home -->
+      <a href="#hero" class="dock-item" data-title="Home" id="dock-home" aria-label="Home">
+        <span class="dock-label">Home</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- 2. Products -->
+      <a href="#sandbox" class="dock-item" data-title="Products" id="dock-products" aria-label="Products">
+        <span class="dock-label">Products</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- 3. Components -->
+      <a href="#engines" class="dock-item" data-title="Components" id="dock-components" aria-label="Components">
+        <span class="dock-label">Components</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5Z"/>
+            <path d="m12 2 3.5 3.5L12 9 8.5 5.5 12 2Z"/>
+            <path d="M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z"/>
+            <path d="m12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- 4. Activity -->
+      <a href="#tech" class="dock-item" data-title="Activity" id="dock-activity" aria-label="Activity">
+        <span class="dock-label">Activity</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </span>
+      </a>
+
+      <!-- 5. Change Log -->
+      <button type="button" class="dock-item" data-title="Change Log" id="dock-changelog" aria-label="Change Log">
+        <span class="dock-label">Change Log</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/>
+            <path d="M19 17V5a2 2 0 0 0-2-2H4"/>
+            <path d="M15 8h-5"/>
+            <path d="M15 12h-5"/>
+          </svg>
+        </span>
+      </button>
+
+      <!-- 6. Email -->
+      <button type="button" class="dock-item" data-title="Email" id="dock-email" aria-label="Email">
+        <span class="dock-label">Email</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="16" x="2" y="4" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+        </span>
+      </button>
+
+      <!-- 7. Theme -->
+      <button type="button" class="dock-item" data-title="Theme" id="dock-theme" aria-label="Toggle Theme">
+        <span class="dock-label">Theme</span>
+        <span class="dock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8a2.83 2.83 0 0 0 4 4 4 4 0 1 1-4-4"/>
+            <path d="M12 2v2"/>
+            <path d="M12 20v2"/>
+            <path d="m4.9 4.9 1.4 1.4"/>
+            <path d="m17.7 17.7 1.4 1.4"/>
+            <path d="M2 12h2"/>
+            <path d="M20 12h2"/>
+            <path d="m6.3 17.7-1.4 1.4"/>
+            <path d="m19.1 4.9-1.4 1.4"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Change Log Modal -->
+  <div class="dock-modal" id="dock-changelog-modal" aria-hidden="true" role="dialog">
+    <div class="dock-modal-backdrop"></div>
+    <div class="dock-modal-dialog">
+      <div class="dock-modal-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald)" stroke-width="2"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M15 8h-5"/><path d="M15 12h-5"/></svg>
+          RemitMind Platform Change Log
+        </h3>
+        <button type="button" class="dock-modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dock-modal-body">
+        <div class="changelog-list">
+          <div class="changelog-entry">
+            <span class="changelog-tag">v2.4.0 &bull; Latest Production</span>
+            <div class="changelog-title">Apple Style Dock & Adaptive Micro-Interactions</div>
+            <div class="changelog-desc">Integrated frosted glassmorphism Apple Style Dock navigation with macOS fluid spring magnification, floating DockLabel tooltips, dynamic theme synchronization, and instant modal panels.</div>
+          </div>
+          <div class="changelog-entry">
+            <span class="changelog-tag">v2.3.0</span>
+            <div class="changelog-title">Hybrid Anomaly Radar & SAR Forensic Generator</div>
+            <div class="changelog-desc">Deployed unsupervised Isolation Forest combined with deterministic rule heuristics. Added one-click Suspicious Activity Report (SAR) briefings grounded in real feature impact scores.</div>
+          </div>
+          <div class="changelog-entry">
+            <span class="changelog-tag">v2.2.0</span>
+            <div class="changelog-title">Plain Bangla Statement Synthesizer (Zero Jargon)</div>
+            <div class="changelog-desc">Empowered rural recipients in Sylhet & Chittagong with clear, jargon-free Bangla financial explanations and browser-native voice synthesis.</div>
+          </div>
+          <div class="changelog-entry">
+            <span class="changelog-tag">v2.0.0</span>
+            <div class="changelog-title">7-Day Agent Cash-Out Forecast & Eid Rush Multipliers</div>
+            <div class="changelog-desc">Added gradient boosted demand forecasting for 1,200+ rural upay agent points with automated pre-surge rebalance thresholds.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Modal -->
+  <div class="dock-modal" id="dock-email-modal" aria-hidden="true" role="dialog">
+    <div class="dock-modal-backdrop"></div>
+    <div class="dock-modal-dialog">
+      <div class="dock-modal-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ai-cyan)" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          Contact RemitMind Operations & Support
+        </h3>
+        <button type="button" class="dock-modal-close" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dock-modal-body">
+        <p style="margin-top:0; margin-bottom:18px; font-size:0.88rem; color:var(--text-secondary);">
+          Direct communication channel with the upay AI Remittance Operations Center in Dhaka.
+        </p>
+        <form id="dock-email-form">
+          <div class="dock-form-group">
+            <label for="dock-sender-name">Your Name</label>
+            <input type="text" id="dock-sender-name" placeholder="e.g. Rahim Sheikh (Dubai) or Nusrat Jahan (HQ)" required>
+          </div>
+          <div class="dock-form-group">
+            <label for="dock-sender-email">Official Email Address</label>
+            <input type="email" id="dock-sender-email" placeholder="name@domain.com" required>
+          </div>
+          <div class="dock-form-group">
+            <label for="dock-sender-subject">Subject Department</label>
+            <input type="text" id="dock-sender-subject" placeholder="Risk Escalation / Rate Inquiry / Agent Liquidity" required>
+          </div>
+          <div class="dock-form-group">
+            <label for="dock-sender-message">Message Details</label>
+            <textarea id="dock-sender-message" placeholder="Provide transaction ID, corridor details, or operational inquiry..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-glow btn-block" style="margin-top:10px;">
+            <span>Transmit Secure Notification</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="js/app.js"></script>
+  <script src="js/dock.js"></script>
 </body>
 </html>

@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initRiskRadar();
   initReceiverPortal();
   initAgentForecast();
-  initApiTabs();
 });
 
 /* ==========================================================================
@@ -428,27 +427,111 @@ function toggleReceiverLanguage(isEnglish) {
     if (summary) summary.innerText = 'আপনার কাছে দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে পৌঁছেছে।';
     if (feeInfo) feeInfo.innerText = 'কোনো গোপন বা বাড়তি চার্জ কাটা হয়নি | নেটওয়ার্ক: উপায় বাংলাদেশ';
     if (agentTip) agentTip.innerText = 'কাছের উপায় এজেন্ট করিম চাচার দোকানে পর্যাপ্ত ক্যাশ টাকা প্রস্তুত আছে।';
+  const voiceBtn = document.getElementById('btn-play-voice-summary');
+  if (voiceBtn && !voiceBtn.classList.contains('playing')) {
+    const span = voiceBtn.querySelector('span');
+    if (span) span.innerText = isEnglish ? 'Play Voice Audio (Listen)' : 'Play Voice Audio (শুনুন)';
   }
 }
 
+let currentReceiverAudio = null;
+
 function playAudioSimulation() {
   const audioBtn = document.getElementById('btn-play-voice-summary');
-  const originalText = audioBtn.innerHTML;
-  audioBtn.innerHTML = `<span>Audio Playback Active...</span>`;
+  if (!audioBtn) return;
 
+  const isEnglish = document.getElementById('receiver-lang-toggle')?.checked || false;
+  const originalHtml = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    <span>${isEnglish ? 'Play Voice Audio (Listen)' : 'Play Voice Audio (শুনুন)'}</span>
+  `;
+
+  // If audio is already actively playing, pause it on second click
+  if (currentReceiverAudio && !currentReceiverAudio.paused) {
+    currentReceiverAudio.pause();
+    currentReceiverAudio.currentTime = 0;
+    currentReceiverAudio = null;
+    audioBtn.innerHTML = originalHtml;
+    audioBtn.classList.remove('playing');
+    showToast(isEnglish ? 'Audio playback paused.' : 'ভয়েস প্লেব্যাক থামানো হয়েছে।');
+    return;
+  }
+
+  // Update button with animated playing state
+  audioBtn.classList.add('playing');
+  audioBtn.innerHTML = `
+    <span class="voice-wave-bars">
+      <span class="voice-wave-bar"></span>
+      <span class="voice-wave-bar"></span>
+      <span class="voice-wave-bar"></span>
+      <span class="voice-wave-bar"></span>
+    </span>
+    <span>${isEnglish ? 'Playing Audio... (Click to Pause)' : 'ভয়েস অডিও বাজছে... (থামাতে ক্লিক করুন)'}</span>
+  `;
+
+  // Use pre-synthesized studio voice audio
+  const audioSrc = isEnglish ? 'assets/english_voice_summary.mp3' : 'assets/bangla_voice_summary.mp3';
+  const audio = new Audio(audioSrc);
+  currentReceiverAudio = audio;
+
+  const resetBtn = () => {
+    audioBtn.innerHTML = originalHtml;
+    audioBtn.classList.remove('playing');
+    currentReceiverAudio = null;
+  };
+
+  audio.onended = () => {
+    resetBtn();
+    showToast(isEnglish ? 'Voice statement completed.' : 'বাংলা ভয়েস বিবরণ সমাপ্ত হয়েছে।');
+  };
+
+  audio.onerror = (err) => {
+    console.warn('Audio playback error, falling back to Web Speech Synthesis:', err);
+    fallbackReceiverSpeech(isEnglish, audioBtn, originalHtml);
+  };
+
+  audio.play().catch((err) => {
+    console.warn('Audio autoplay blocked, falling back to Web Speech Synthesis:', err);
+    fallbackReceiverSpeech(isEnglish, audioBtn, originalHtml);
+  });
+}
+
+function fallbackReceiverSpeech(isEnglish, btn, originalHtml) {
   if ('speechSynthesis' in window) {
-    const textToSpeak = 'আপনার কাছে দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে পৌঁছেছে।';
+    window.speechSynthesis.cancel();
+    const textToSpeak = isEnglish 
+      ? 'A total of 67,780 Taka was safely received from Rahim Sheikh in Dubai. Prepaid by sender with zero hidden charges.'
+      : 'দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭ হাজার ৭৮০ টাকা নিরাপদে আপনার উপায় একাউন্টে জমা হয়েছে। কোনো লুকানো চার্জ কাটা হয়নি।';
+
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'bn-BD';
+    utterance.lang = isEnglish ? 'en-US' : 'bn-BD';
     utterance.rate = 0.95;
-    utterance.onend = () => { audioBtn.innerHTML = originalText; };
-    utterance.onerror = () => { audioBtn.innerHTML = originalText; };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (isEnglish) {
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utterance.voice = enVoice;
+    } else {
+      const bnVoice = voices.find(v => v.lang.startsWith('bn') || v.name.includes('Bangla') || v.name.includes('Bengali'));
+      if (bnVoice) utterance.voice = bnVoice;
+    }
+
+    utterance.onend = () => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+    };
+    utterance.onerror = () => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+    };
+
     window.speechSynthesis.speak(utterance);
   } else {
     setTimeout(() => {
-      audioBtn.innerHTML = originalText;
-      showToast('Audio narration completed.');
-    }, 2000);
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+      showToast(isEnglish ? 'Audio narration completed.' : 'ভয়েস বিবরণ সমাপ্ত হয়েছে।');
+    }, 2500);
   }
 }
 
@@ -493,88 +576,6 @@ function recomputeAgentLiquidity(cashOnHand) {
   }
 }
 
-/* ==========================================================================
-   7. API Playground & Sandbox Navigation Tabs
-   ========================================================================== */
-function initApiTabs() {
-  const apiBtns = document.querySelectorAll('.api-tab-btn');
-  const codeDisplay = document.getElementById('api-code-snippet');
-
-  const API_SNIPPETS = {
-    plan: `// POST /api/v1/plans/recommend
-{
-  "sender_id": "u_101",
-  "receiver_id": "u_202",
-  "corridor": "AED_BDT",
-  "amount_src": 2000,
-  "goals": [
-    { "name": "rent", "share_pct": 50 },
-    { "name": "school", "share_pct": 30 },
-    { "name": "savings", "share_pct": 20 }
-  ]
-}
-
-// Response 200 OK
-{
-  "best_day": "2026-10-08",
-  "send_now": { "amount_bdt": 66400, "fee_bdt": 1328 },
-  "send_best": { "amount_bdt": 67780, "fee_bdt": 1220 },
-  "expected_saving_bdt": 1380,
-  "confidence": 0.82,
-  "split": [
-    { "name": "rent", "bdt": 33890 },
-    { "name": "school", "bdt": 20334 },
-    { "name": "savings", "bdt": 13556 }
-  ],
-  "explanation": "AED/BDT has gained momentum for 4 consecutive days. Sending Thursday saves BDT 1,380."
-}`,
-
-    transfer: `// POST /api/v1/transfers
-{
-  "sender_id": "u_101",
-  "receiver_id": "u_202",
-  "corridor": "AED_BDT",
-  "amount_src": 2000,
-  "device_id": "dev_dubai_77",
-  "channel": "app"
-}
-
-// Response 201 Created (Flagged for Review)
-{
-  "transfer_id": "t_9001",
-  "status": "in_review",
-  "risk_score": 78,
-  "reason_codes": ["NEW_RECEIVER", "VELOCITY_3X", "NEW_DEVICE"],
-  "message": "Transaction routed to human risk analyst queue for safety verification."
-}`,
-
-    alert: `// GET /api/v1/analyst/alerts/a_55
-// Headers: { "X-API-Key": "upay-risk-secret" }
-
-// Response 200 OK
-{
-  "alert_id": "a_55",
-  "transfer_id": "t_9001",
-  "score": 78,
-  "reason_codes": ["NEW_RECEIVER", "VELOCITY_3X", "NEW_DEVICE"],
-  "what_happened": "3 transfers in 40 minutes to a receiver first seen today.",
-  "why_risky": "Matches structuring pattern seen in synthetic mule rings.",
-  "suggested_action": "hold",
-  "model_version": "risk-v1.0"
-}`
-  };
-
-  apiBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      apiBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const snippetKey = btn.dataset.endpoint;
-      if (codeDisplay && API_SNIPPETS[snippetKey]) {
-        codeDisplay.innerText = API_SNIPPETS[snippetKey];
-      }
-    });
-  });
-}
 
 window.switchSandboxTab = function(tabId) {
   const tabs = document.querySelectorAll('.sandbox-tab-btn');

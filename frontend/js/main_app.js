@@ -74,8 +74,37 @@ document.addEventListener('DOMContentLoaded', () => {
   initReceiverApp();
   initAgentApp();
   initCopilot();
+  initUserSession();
   syncTransfersWithBackend();
 });
+
+/* ==========================================================================
+   0. User Session Management
+   ========================================================================== */
+function initUserSession() {
+  const sessionBadge = document.getElementById('user-session-badge');
+  const loginBtn = document.getElementById('btn-app-login');
+  const avatarInitial = document.getElementById('user-avatar-initial');
+  const displayName = document.getElementById('user-display-name');
+
+  const storedUser = localStorage.getItem('remitmind_user');
+  if (storedUser) {
+    try {
+      const user = JSON.parse(storedUser);
+      if (sessionBadge && loginBtn) {
+        sessionBadge.style.display = 'inline-flex';
+        loginBtn.style.display = 'none';
+        if (avatarInitial) avatarInitial.textContent = (user.name || 'U').charAt(0).toUpperCase();
+        if (displayName) displayName.textContent = `${user.name} (${user.country || user.role})`;
+      }
+    } catch (e) {
+      console.warn('Failed to parse user session:', e);
+    }
+  } else {
+    if (sessionBadge) sessionBadge.style.display = 'none';
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+  }
+}
 
 /* ==========================================================================
    1. Theme Management (Light / Dark Mode)
@@ -147,9 +176,13 @@ function initAppNavigation() {
     });
   });
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const viewParam = urlParams.get('view');
   const hash = window.location.hash.replace('#', '');
-  if (hash) {
-    const matchingTab = document.querySelector(`.app-nav-tab[data-view="${hash}"]`);
+  const activeView = viewParam || hash;
+
+  if (activeView) {
+    const matchingTab = document.querySelector(`.app-nav-tab[data-view="${activeView}"]`);
     if (matchingTab) matchingTab.click();
   }
 }
@@ -183,13 +216,15 @@ function initPaymentGateway() {
       let val = e.target.value.replace(/\D/g, '').substring(0, 16);
       let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
       e.target.value = formatted;
-      document.getElementById('disp-card-number').innerText = formatted || '•••• •••• •••• ••••';
+      const disp = document.getElementById('disp-card-number');
+      if (disp) disp.innerText = formatted || '•••• •••• •••• ••••';
     });
   }
 
   if (cardHolderInput) {
     cardHolderInput.addEventListener('input', (e) => {
-      document.getElementById('disp-card-holder').innerText = e.target.value.toUpperCase() || 'RAHIM SHEIKH';
+      const disp = document.getElementById('disp-card-holder');
+      if (disp) disp.innerText = e.target.value.toUpperCase() || 'RAHIM SHEIKH';
     });
   }
 
@@ -198,7 +233,8 @@ function initPaymentGateway() {
       let val = e.target.value.replace(/\D/g, '').substring(0, 4);
       if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
       e.target.value = val;
-      document.getElementById('disp-card-expiry').innerText = val || 'MM/YY';
+      const disp = document.getElementById('disp-card-expiry');
+      if (disp) disp.innerText = val || 'MM/YY';
     });
   }
 
@@ -856,19 +892,111 @@ function initReceiverApp() {
       } else {
         textEl.innerText = 'দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে আপনার উপায় একাউন্টে জমা হয়েছে। কোনো লুকানো চার্জ কাটা হয়নি।';
       }
+
+      if (audioBtn && !audioBtn.classList.contains('playing')) {
+        const span = audioBtn.querySelector('span');
+        if (span) span.innerText = isEnglish ? 'Play Voice Summary (English)' : 'Play Voice Summary (বাংলায় শুনুন)';
+      }
     });
   }
 
+  let currentAppAudio = null;
+
   if (audioBtn) {
     audioBtn.addEventListener('click', () => {
-      if ('speechSynthesis' in window) {
-        const text = 'দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে আপনার উপায় একাউন্টে জমা হয়েছে।';
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'bn-BD';
-        window.speechSynthesis.speak(utterance);
+      const isEnglish = langToggle?.checked || false;
+      const originalHtml = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <span>${isEnglish ? 'Play Voice Summary (English)' : 'Play Voice Summary (বাংলায় শুনুন)'}</span>
+      `;
+
+      // Pause if already playing
+      if (currentAppAudio && !currentAppAudio.paused) {
+        currentAppAudio.pause();
+        currentAppAudio.currentTime = 0;
+        currentAppAudio = null;
+        audioBtn.innerHTML = originalHtml;
+        audioBtn.classList.remove('playing');
+        showAppToast(isEnglish ? 'Voice playback paused.' : 'ভয়েস প্লেব্যাক থামানো হয়েছে।');
+        return;
       }
-      showAppToast('Bangla voice summary played.');
+
+      audioBtn.classList.add('playing');
+      audioBtn.innerHTML = `
+        <span class="voice-wave-bars">
+          <span class="voice-wave-bar"></span>
+          <span class="voice-wave-bar"></span>
+          <span class="voice-wave-bar"></span>
+          <span class="voice-wave-bar"></span>
+        </span>
+        <span>${isEnglish ? 'Playing Audio... (Click to Pause)' : 'ভয়েস অডিও বাজছে... (থামাতে ক্লিক করুন)'}</span>
+      `;
+
+      const audioSrc = isEnglish ? 'assets/english_voice_summary.mp3' : 'assets/bangla_voice_summary.mp3';
+      const audio = new Audio(audioSrc);
+      currentAppAudio = audio;
+
+      const resetBtn = () => {
+        audioBtn.innerHTML = originalHtml;
+        audioBtn.classList.remove('playing');
+        currentAppAudio = null;
+      };
+
+      audio.onended = () => {
+        resetBtn();
+        showAppToast(isEnglish ? 'Voice summary finished.' : 'বাংলা ভয়েস বিবরণ সমাপ্ত হয়েছে।');
+      };
+
+      audio.onerror = (err) => {
+        console.warn('Audio play error, falling back to Web Speech Synthesis:', err);
+        fallbackAppSpeech(isEnglish, audioBtn, originalHtml);
+      };
+
+      audio.play().catch((err) => {
+        console.warn('Audio play blocked, falling back to Web Speech Synthesis:', err);
+        fallbackAppSpeech(isEnglish, audioBtn, originalHtml);
+      });
     });
+  }
+}
+
+function fallbackAppSpeech(isEnglish, btn, originalHtml) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const text = isEnglish 
+      ? 'A total of 67,780 Taka was safely received from Rahim Sheikh in Dubai. Prepaid by sender with zero hidden charges.'
+      : 'দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭ হাজার ৭৮০ টাকা নিরাপদে আপনার উপায় একাউন্টে জমা হয়েছে। কোনো লুকানো চার্জ কাটা হয়নি।';
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = isEnglish ? 'en-US' : 'bn-BD';
+    utterance.rate = 0.95;
+
+    const voices = window.speechSynthesis.getVoices();
+    if (isEnglish) {
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utterance.voice = enVoice;
+    } else {
+      const bnVoice = voices.find(v => v.lang.startsWith('bn') || v.name.includes('Bangla') || v.name.includes('Bengali'));
+      if (bnVoice) utterance.voice = bnVoice;
+    }
+
+    utterance.onend = () => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+    };
+    utterance.onerror = () => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+    };
+
+    window.speechSynthesis.speak(utterance);
+    showAppToast(isEnglish ? 'Speech synthesis active.' : 'বাংলা ভয়েস প্লে হচ্ছে।');
+  } else {
+    setTimeout(() => {
+      btn.innerHTML = originalHtml;
+      btn.classList.remove('playing');
+      showAppToast('Voice summary completed.');
+    }, 2500);
   }
 }
 
