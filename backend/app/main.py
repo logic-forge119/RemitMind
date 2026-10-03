@@ -88,6 +88,7 @@ if FRONTEND_DIR.exists():
         app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
 
     @app.get("/", tags=["Frontend"])
+    @app.get("/index.html", tags=["Frontend"])
     def serve_landing_page():
         return FileResponse(str(FRONTEND_DIR / "index.html"))
 
