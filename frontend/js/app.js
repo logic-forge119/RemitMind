@@ -37,17 +37,25 @@ function initThemeToggle() {
 
 function updateThemeIcon(theme) {
   const iconContainer = document.getElementById('theme-icon-container');
+  const themeBtn = document.getElementById('theme-toggle-btn');
+
+  if (themeBtn) {
+    const isDark = theme === 'dark';
+    themeBtn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    themeBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+  }
+
   if (!iconContainer) return;
 
   if (theme === 'light') {
-    // Show Moon icon to indicate switch to dark
+    // Show Moon icon in light mode indicating click to switch to night
     iconContainer.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
       </svg>
     `;
   } else {
-    // Show Sun icon to indicate switch to light
+    // Show Sun icon in dark mode indicating click to switch to light
     iconContainer.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"></circle>
@@ -427,6 +435,8 @@ function toggleReceiverLanguage(isEnglish) {
     if (summary) summary.innerText = 'আপনার কাছে দুবাই থেকে রহিম ভাইয়ের পাঠানো মোট ৬৭,৭৮০ টাকা নিরাপদে পৌঁছেছে।';
     if (feeInfo) feeInfo.innerText = 'কোনো গোপন বা বাড়তি চার্জ কাটা হয়নি | নেটওয়ার্ক: উপায় বাংলাদেশ';
     if (agentTip) agentTip.innerText = 'কাছের উপায় এজেন্ট করিম চাচার দোকানে পর্যাপ্ত ক্যাশ টাকা প্রস্তুত আছে।';
+  }
+
   const voiceBtn = document.getElementById('btn-play-voice-summary');
   if (voiceBtn && !voiceBtn.classList.contains('playing')) {
     const span = voiceBtn.querySelector('span');

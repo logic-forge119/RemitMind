@@ -31,38 +31,84 @@ AVAILABLE_MODELS = [
     }
 ]
 
+def sanitize_prompt_input(text: str, max_chars: int = 600) -> str:
+    """Sanitizes user input before sending to LLM to prevent prompt injection."""
+    if not text:
+        return ""
+    cleaned = text.strip()[:max_chars]
+    for pattern in ["system:", "assistant:", "<|im_start|>", "ignore previous instructions", "disregard all prior"]:
+        if pattern in cleaned.lower():
+            cleaned = cleaned.replace(pattern, "[sanitized]")
+    return cleaned
+
 def _call_gemini_api_if_available(prompt: str, model_id: str = "gemini-1.5-flash") -> str:
-    """Attempts to call the real Google Gemini API if GEMINI_API_KEY is configured in the environment."""
-    api_key = os.environ.get("GEMINI_API_KEY")
+    """Attempts to call Google Gemini API with strict 4s timeout and seamless fallback."""
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("LLM_API_KEY")
     if not api_key:
         return None
 
     try:
+        import httpx
         model_name = "gemini-1.5-pro" if "pro" in model_id else "gemini-1.5-flash"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-        payload = json.dumps({
-            "contents": [{"parts": [{"text": prompt}]}]
-        }).encode("utf-8")
-        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=5) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            candidates = res_data.get("candidates", [])
-            if candidates:
-                parts = candidates[0].get("content", {}).get("parts", [])
-                if parts:
-                    return parts[0].get("text", "")
-    except Exception as e:
+        clean_prompt = sanitize_prompt_input(prompt)
+        payload = {"contents": [{"parts": [{"text": clean_prompt}]}]}
+
+        with httpx.Client(timeout=4.0) as client:
+            response = client.post(url, json=payload, headers={"Content-Type": "application/json"})
+            if response.status_code == 200:
+                res_data = response.json()
+                candidates = res_data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "")
+    except Exception:
         # Fall back to grounded generator seamlessly
         pass
     return None
 
+GROUNDED_SOP_CONTEXT = {
+    "SOP-001": {
+        "title": "Velocity Anomaly Protocol",
+        "keywords": ["velocity", "rapid", "3x", "frequent", "burst"],
+        "citation": "[SOP-001 Velocity Protocol] When velocity >= 3x in 45 minutes occurs, flag transfer for mandatory 2-factor OTP verification and secondary device confirmation before releasing funds."
+    },
+    "SOP-002": {
+        "title": "New Receiver Hold Procedure",
+        "keywords": ["new receiver", "first time", "novel", "cooling"],
+        "citation": "[SOP-002 Novel Recipient Protocol] First-time beneficiaries receiving over 25,000 BDT or off-hours transfers require a 30-second cooling-off period and outbound verification."
+    },
+    "SOP-003": {
+        "title": "Account Takeover Escalation",
+        "keywords": ["takeover", "device", "hardware", "unverified", "spoof"],
+        "citation": "[SOP-003 Takeover Protocol] Unrecognized hardware UUID combined with sudden geographical deviation triggers immediate credential hold and live biometric selfie verification."
+    },
+    "SOP-004": {
+        "title": "BFIU STR Regulatory Filing Requirements",
+        "keywords": ["bfiu", "str", "form 2", "regulatory", "filing", "money laundering"],
+        "citation": "[SOP-004 Regulatory Filing] Under Money Laundering Prevention Act 2012, confirmed mule syndicate clusters or structured structuring >= 50,000 BDT must be filed via BFIU Form 2 STR within 72 hours with SHA-256 seal."
+    },
+    "SOP-005": {
+        "title": "Human-in-the-Loop Override Policy",
+        "keywords": ["override", "human", "auto block", "policy", "fairness"],
+        "citation": "[SOP-005 Governance] Machine learning models never autonomously forfeit funds or blacklist users. Certified L2 risk analysts must review flagged cases with explicit decision audits."
+    }
+}
+
 def generate_copilot_response(message: str, context: dict = None, model: str = "gemini-1.5-flash", lang: str = "en") -> dict:
     """
     Processes natural language queries from senders, receivers, analysts, and agents.
-    Grounds all outputs strictly in synthetic data, rules, and mathematical forecasts.
+    Grounds all outputs strictly in synthetic data, rules, SOP standards, and mathematical forecasts.
     """
     msg_lower = message.lower()
     
+    # Check for matching SOP citations
+    matched_sops = []
+    for sop_id, sop_info in GROUNDED_SOP_CONTEXT.items():
+        if any(kw in msg_lower for kw in sop_info["keywords"]):
+            matched_sops.append(sop_info["citation"])
+    sop_header = "\n\n".join(matched_sops) + "\n\n" if matched_sops else ""
     # 1. Sender Query: When to send / rate advice
     if any(k in msg_lower for k in ["when", "best day", "rate", "thursday", "save", "timing", "send now", "discount"]):
         reply = (
@@ -137,6 +183,9 @@ def generate_copilot_response(message: str, context: dict = None, model: str = "
     live_reply = _call_gemini_api_if_available(message, model)
     if live_reply:
         reply = live_reply
+
+    if sop_header and not reply.startswith("[SOP-"):
+        reply = sop_header + reply
 
     return {
         "reply": reply,

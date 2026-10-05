@@ -7,9 +7,12 @@ Produces a 0-100 score and explicit reason codes.
 import os
 import math
 import json
+from pathlib import Path
 from app.services.rules import evaluate_rule_penalties, determine_status_and_action
 
 MODEL_VERSION = "risk-v1.0"
+MODEL_DIR = Path(__file__).resolve().parent.parent / "ml" / "artifacts"
+MODEL_FILE = MODEL_DIR / "isolation_forest_v1.joblib"
 
 class AnomalyScorer:
     def __init__(self):
@@ -18,18 +21,55 @@ class AnomalyScorer:
 
     def _init_model(self):
         try:
+            import joblib
+            # 1. Load from disk if serialized model artifact exists
+            if MODEL_FILE.exists():
+                self.model = joblib.load(MODEL_FILE)
+                return
+
+            # 2. Train baseline Isolation Forest and serialize to disk
             from sklearn.ensemble import IsolationForest
             import numpy as np
 
-            # Initialize a baseline Isolation Forest
-            # Trained on standard reference vectors: [amount_z, velocity_1h, new_rcv, new_dev, odd_hour, distinct_senders]
             rng = np.random.RandomState(42)
-            # 500 reference samples representing baseline distribution
-            normal_data = rng.normal(loc=[0.0, 0.2, 0.05, 0.05, 14.0, 1.0], scale=[1.0, 0.4, 0.2, 0.2, 4.0, 0.3], size=(500, 6))
+            normal_data = rng.normal(
+                loc=[0.0, 0.2, 0.05, 0.05, 14.0, 1.0],
+                scale=[1.0, 0.4, 0.2, 0.2, 4.0, 0.3],
+                size=(500, 6)
+            )
             self.model = IsolationForest(n_estimators=100, contamination=0.08, random_state=42)
             self.model.fit(normal_data)
+
+            MODEL_DIR.mkdir(parents=True, exist_ok=True)
+            joblib.dump(self.model, MODEL_FILE)
         except Exception:
             self.model = None
+
+    def retrain(self, custom_data=None):
+        """Retrains and persists the updated model artifact."""
+        try:
+            from sklearn.ensemble import IsolationForest
+            import numpy as np
+            import joblib
+
+            if custom_data is not None and len(custom_data) >= 50:
+                data = np.array(custom_data)
+            else:
+                rng = np.random.RandomState(42)
+                data = rng.normal(
+                    loc=[0.0, 0.2, 0.05, 0.05, 14.0, 1.0],
+                    scale=[1.0, 0.4, 0.2, 0.2, 4.0, 0.3],
+                    size=(600, 6)
+                )
+
+            new_model = IsolationForest(n_estimators=100, contamination=0.08, random_state=42)
+            new_model.fit(data)
+            self.model = new_model
+            MODEL_DIR.mkdir(parents=True, exist_ok=True)
+            joblib.dump(self.model, MODEL_FILE)
+            return True
+        except Exception:
+            return False
 
     def score_transfer(
         self,

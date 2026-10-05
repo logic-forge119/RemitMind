@@ -7,15 +7,22 @@ from app.models import RiskAlert, Transfer, ReviewAction
 from app.schemas import RiskAlertDetailResponse, AnalystDecisionRequest, AnalystDecisionResponse
 from app.config import settings
 
+import os
+
 router = APIRouter(prefix="/api/v1/analyst", tags=["Analyst Risk Operations"])
 
 def verify_analyst_key(x_api_key: str = Header(default="")):
-    # Allow local development if empty or matching
-    if x_api_key and x_api_key != settings.ANALYST_API_KEY:
-        raise HTTPException(status_code=401, detail="Invalid X-API-Key header")
+    # Verify analyst key against configured secret
+    if x_api_key:
+        if x_api_key != settings.ANALYST_API_KEY:
+            raise HTTPException(status_code=401, detail="Invalid X-API-Key header")
+        return True
+    # If production enforcement flag is enabled, reject missing key
+    if os.getenv("ENFORCE_ANALYST_AUTH", "false").lower() in ("true", "1"):
+        raise HTTPException(status_code=401, detail="Missing required X-API-Key header")
     return True
 
-@router.get("/alerts")
+@router.get("/alerts", dependencies=[Depends(verify_analyst_key)])
 def list_alerts(status: str = "open", db: Session = Depends(get_db)):
     query = db.query(RiskAlert)
     if status != "all":
@@ -61,7 +68,7 @@ def get_alert_detail(id: str, db: Session = Depends(get_db)):
         "model_version": alert.model_version
     }
 
-@router.post("/alerts/{id}/decision", response_model=AnalystDecisionResponse)
+@router.post("/alerts/{id}/decision", response_model=AnalystDecisionResponse, dependencies=[Depends(verify_analyst_key)])
 def record_analyst_decision(
     id: str,
     payload: AnalystDecisionRequest,

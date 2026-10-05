@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: remitmind-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://remitmind:upay_secure_pass@db:5432/remitmind_db
+      - ANALYST_API_KEY=upay-risk-secret
+      - RISK_REVIEW_THRESHOLD=40.0
+      - RISK_HIGH_THRESHOLD=70.0
+      - ALLOWED_ORIGINS=*
+      - APP_ENV=production
+    volumes:
+      - remitmind-data:/app/data
+      - remitmind-ml:/app/backend/ml/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - remitmind-net
+
+  db:
+    image: postgres:16-alpine
+    container_name: remitmind-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=remitmind
+      - POSTGRES_PASSWORD=upay_secure_pass
+      - POSTGRES_DB=remitmind_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remitmind -d remitmind_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - remitmind-net
+
+volumes:
+  remitmind-data:
+  remitmind-ml:
+  postgres-data:
+
+networks:
+  remitmind-net:
+    driver: bridge

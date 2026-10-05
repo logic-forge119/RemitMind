@@ -130,6 +130,14 @@ function initAppTheme() {
 
 function updateAppThemeIcon(theme) {
   const container = document.getElementById('app-theme-icon');
+  const themeBtn = document.getElementById('app-theme-btn');
+
+  if (themeBtn) {
+    const isDark = theme === 'dark';
+    themeBtn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+    themeBtn.setAttribute('aria-label', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+  }
+
   if (!container) return;
 
   if (theme === 'light') {
@@ -173,6 +181,10 @@ function initAppNavigation() {
           view.classList.remove('active');
         }
       });
+
+      if (targetView === 'syndicate') loadGraphIntelligence();
+      else if (targetView === 'resilience') loadResilienceDivisions();
+      else if (targetView === 'simulator') updateThreatMeter();
     });
   });
 
@@ -262,9 +274,9 @@ function initPaymentGateway() {
 
   const payBtn = document.getElementById('btn-submit-payment');
   if (payBtn) {
-    payBtn.addEventListener('click', (e) => {
+    payBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      openOtpModal();
+      await triggerPreFlightShieldCheck();
     });
   }
 
@@ -529,7 +541,9 @@ async function renderAnalystAlerts() {
 
   // Try fetching alerts from backend /api/v1/analyst/alerts
   try {
-    const res = await fetch(`${API_BASE}/api/v1/analyst/alerts?status=open`);
+    const res = await fetch(`${API_BASE}/api/v1/analyst/alerts?status=open`, {
+      headers: { 'X-API-Key': 'upay-risk-secret' }
+    });
     if (res.ok) {
       const serverAlerts = await res.json();
       if (countEl) countEl.innerText = `${serverAlerts.length} Active Interceptions`;
@@ -562,7 +576,11 @@ async function renderAnalystAlerts() {
             <div class="action-buttons-row">
               <button class="btn btn-secondary btn-sm" onclick="window.openSarModal('${alert.alert_id}', '${alert.transfer_id}', ${alert.score}, ${JSON.stringify(alert.reason_codes || []).replace(/"/g, '&quot;')})">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <span>Inspect Forensic SAR</span>
+                <span>Forensic SAR</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="openBfiuModal('${alert.alert_id}', '${alert.transfer_id}', ${alert.score}, ${alert.amount_bdt || 95000}, ${JSON.stringify(alert.reason_codes || []).replace(/"/g, '&quot;')})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald-light)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>BFIU Form 2</span>
               </button>
               <button class="btn btn-approve btn-sm" onclick="analystResolve('${alert.alert_id}', 'approve')">
                 <span>Approve & Release</span>
@@ -1218,4 +1236,691 @@ window.sendCopilotMsg = async function() {
   `;
   messagesArea.scrollTop = messagesArea.scrollHeight;
 };
+
+/* ==========================================================================
+   AegisRisk Platform Extensions
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. AegisShield Pre-Flight Safety Interception & 30s Cooling Window
+   -------------------------------------------------------------------------- */
+let shieldCountdownInterval = null;
+
+async function triggerPreFlightShieldCheck() {
+  const amountInput = document.getElementById('pay-amount');
+  const srcAmount = parseFloat(amountInput ? amountInput.value : 0) || 2000;
+  const memoInput = document.getElementById('pay-memo');
+  const memoVal = memoInput ? memoInput.value : '';
+  const simulateAnomaly = document.getElementById('chk-simulate-anomaly')?.checked || false;
+
+  const payload = {
+    sender_id: 'u_101',
+    receiver_id: simulateAnomaly ? 'u_mule_scam_99' : 'u_recv_001',
+    amount: srcAmount,
+    corridor: APP_STATE.activeCorridor,
+    memo: memoVal,
+    device_id: simulateAnomaly ? 'dev_emulator_suspicious' : 'dev_dubai_trusted'
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/scamshield/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.intercept) {
+        openShieldModal(data);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('ScamShield API check fallback:', err);
+    const lower = memoVal.toLowerCase();
+    if (lower.includes('lottery') || lower.includes('prize') || lower.includes('hospital') || lower.includes('emergency') || lower.includes('police') || lower.includes('refund')) {
+      openShieldModal({
+        risk_level: 'critical',
+        warning_message_en: 'CRITICAL ALERT: Transfer memo matches known social engineering scam signatures. Legitimate organizations never demand immediate upfront transfers.',
+        warning_message_bn: 'জরুরি সতর্কতা: টাকা পাঠানোর কারণে প্রতারণামূলক ভাষা শনাক্ত হয়েছে। কোনো বৈধ প্রতিষ্ঠান কখনো অগ্রিম টাকা দাবি করে না।',
+        cooling_off_seconds: 30
+      });
+      return;
+    }
+  }
+
+  // If no intercept triggered, proceed directly to OTP
+  openOtpModal();
+}
+
+function openShieldModal(data) {
+  const modal = document.getElementById('shield-modal');
+  if (!modal) {
+    openOtpModal();
+    return;
+  }
+
+  const badge = document.getElementById('shield-risk-badge');
+  if (badge) {
+    badge.innerText = (data.risk_level || 'critical').toUpperCase() + ' FRAUD RISK';
+    badge.className = data.risk_level === 'high' ? 'shield-badge-high' : 'shield-badge-critical';
+  }
+
+  const msgEn = document.getElementById('shield-msg-en');
+  if (msgEn) msgEn.innerText = data.warning_message_en || 'Elevated risk detected.';
+
+  const msgBn = document.getElementById('shield-msg-bn');
+  if (msgBn) msgBn.innerText = data.warning_message_bn || 'অতিরিক্ত ঝুঁকি শনাক্ত হয়েছে।';
+
+  let remaining = data.cooling_off_seconds || 30;
+  const countDisplay = document.getElementById('shield-countdown-display');
+  const proceedBtn = document.getElementById('btn-shield-proceed');
+
+  if (proceedBtn) {
+    proceedBtn.disabled = true;
+    proceedBtn.style.opacity = '0.5';
+    proceedBtn.style.cursor = 'not-allowed';
+    proceedBtn.innerText = `I Understand, Proceed (${remaining}s)`;
+  }
+
+  if (countDisplay) countDisplay.innerText = `${remaining}s`;
+
+  if (shieldCountdownInterval) clearInterval(shieldCountdownInterval);
+
+  shieldCountdownInterval = setInterval(() => {
+    remaining -= 1;
+    if (countDisplay) countDisplay.innerText = `${remaining}s`;
+    if (proceedBtn) proceedBtn.innerText = `I Understand, Proceed (${remaining}s)`;
+
+    if (remaining <= 0) {
+      clearInterval(shieldCountdownInterval);
+      if (countDisplay) countDisplay.innerText = '0s (Cooling Complete)';
+      if (proceedBtn) {
+        proceedBtn.disabled = false;
+        proceedBtn.style.opacity = '1';
+        proceedBtn.style.cursor = 'pointer';
+        proceedBtn.innerText = 'I Understand, Proceed with Caution';
+      }
+    }
+  }, 1000);
+
+  modal.classList.add('open');
+}
+
+function cancelShieldTransfer() {
+  if (shieldCountdownInterval) clearInterval(shieldCountdownInterval);
+  const modal = document.getElementById('shield-modal');
+  if (modal) modal.classList.remove('open');
+  alert('Transfer Cancelled: Your funds remain completely safe in your account.');
+}
+
+function confirmShieldProceed() {
+  if (shieldCountdownInterval) clearInterval(shieldCountdownInterval);
+  const modal = document.getElementById('shield-modal');
+  if (modal) modal.classList.remove('open');
+  openOtpModal();
+}
+
+/* --------------------------------------------------------------------------
+   2. SyndicateRadar & Mule Network Graph Visualization
+   -------------------------------------------------------------------------- */
+let graphDecloaked = false;
+let graphAnimationReq = null;
+let cachedGraphNodes = [];
+let cachedGraphLinks = [];
+let simNodesCache = [];
+
+async function loadGraphIntelligence() {
+  const nodesPill = document.getElementById('graph-stat-nodes');
+  const linksPill = document.getElementById('graph-stat-links');
+  const clustersPill = document.getElementById('graph-stat-clusters');
+  const clustersList = document.getElementById('syndicate-clusters-list');
+  const pagerankTbody = document.getElementById('pagerank-tbody');
+
+  try {
+    const headers = graphDecloaked ? { 'X-API-Key': 'upay-risk-secret' } : {};
+    const res = await fetch(`${API_BASE}/api/v1/graph/network?decloak=${graphDecloaked}&limit=60`, { headers });
+    if (!res.ok) throw new Error('Graph fetch failed');
+    const data = await res.json();
+
+    cachedGraphNodes = data.nodes || [];
+    cachedGraphLinks = data.links || [];
+
+    if (nodesPill) nodesPill.innerText = `Nodes: ${data.total_nodes}`;
+    if (linksPill) linksPill.innerText = `Edges: ${data.total_links}`;
+    if (clustersPill) clustersPill.innerText = `Syndicates: ${data.syndicates_detected}`;
+
+    // Render Canvas Force Graph
+    renderGraphCanvas(cachedGraphNodes, cachedGraphLinks);
+
+    // Render Clusters
+    if (clustersList) {
+      if (!data.clusters || data.clusters.length === 0) {
+        clustersList.innerHTML = '<div style="color:var(--text-muted); font-size:0.82rem; padding:16px 0;">No active clusters.</div>';
+      } else {
+        clustersList.innerHTML = data.clusters.map(c => `
+          <div class="cluster-card" style="border-left: 4px solid ${c.is_syndicate ? '#ef4444' : '#10b981'};">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <strong style="color:var(--text-primary); font-size:0.88rem;">Cluster #${c.cluster_id}</strong>
+                <span style="font-size:0.72rem; color:var(--text-muted); margin-left:6px;">(${c.member_count} accounts)</span>
+              </div>
+              <span class="ticker-badge" style="background:${c.is_syndicate ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; color:${c.is_syndicate ? '#f87171' : '#34d399'}; font-size:0.7rem;">
+                ${c.threat_level.toUpperCase()}
+              </span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:8px;">
+              Mules: <strong>${c.mules_detected}</strong> &bull; Volume: <strong>BDT ${Number(c.total_volume_bdt).toLocaleString()}</strong>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="width:100%; border-color:rgba(239,68,68,0.4); color:#f87171; font-size:0.75rem; padding:4px 8px;" onclick="quarantineCluster(${c.cluster_id})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-1px; margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              <span>Quarantine Cluster</span>
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Render Centrality (PageRank) Table
+    if (pagerankTbody) {
+      const topNodes = (data.nodes || []).slice(0, 12);
+      pagerankTbody.innerHTML = topNodes.map(n => `
+        <tr>
+          <td><strong style="font-family:var(--font-mono); color:var(--ai-cyan);">${n.display_id || n.id}</strong></td>
+          <td><span class="ticker-badge" style="background:rgba(255,255,255,0.06); font-size:0.72rem;">${n.role}</span></td>
+          <td>#${n.cluster_id}</td>
+          <td><strong style="font-family:var(--font-mono);">${n.pagerank}</strong></td>
+          <td>${n.in_degree} &darr; / ${n.out_degree} &uarr;</td>
+          <td>BDT ${Number(n.total_sent + n.total_received).toLocaleString()}</td>
+          <td>${n.is_quarantined ? '<span style="color:#f87171; font-weight:700;">QUARANTINED</span>' : '<span style="color:#34d399;">Active</span>'}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" style="font-size:0.72rem; padding:3px 8px;" onclick="quarantineSingleNode('${n.real_id || n.id}')">Freeze</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+  } catch (err) {
+    console.error('Failed to load graph intelligence:', err);
+  }
+}
+
+function renderGraphCanvas(nodes, links) {
+  const canvas = document.getElementById('syndicate-graph-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width === 0) return;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+
+  const width = rect.width;
+  const height = rect.height;
+
+  const simNodes = nodes.map((n, i) => {
+    const angle = (i / Math.max(1, nodes.length)) * Math.PI * 2;
+    const radius = 90 + (n.cluster_id % 4) * 45 + Math.random() * 30;
+    return {
+      ...n,
+      x: width / 2 + Math.cos(angle) * radius + (Math.random() - 0.5) * 15,
+      y: height / 2 + Math.sin(angle) * radius + (Math.random() - 0.5) * 15,
+      radius: Math.max(5, Math.min(16, 5 + (n.pagerank || 0) * 110))
+    };
+  });
+
+  simNodesCache = simNodes;
+
+  const nodeMap = {};
+  simNodes.forEach(sn => { nodeMap[sn.display_id || sn.id] = sn; });
+
+  const simLinks = links.map(l => ({
+    source: nodeMap[l.source],
+    target: nodeMap[l.target],
+    amount: l.amount_bdt
+  })).filter(l => l.source && l.target);
+
+  // Attach interactive node inspector click handler and resize handler once
+  if (!canvas.dataset.hasListener) {
+    canvas.dataset.hasListener = 'true';
+    canvas.addEventListener('click', (e) => {
+      const crect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - crect.left;
+      const clickY = e.clientY - crect.top;
+
+      let closest = null;
+      let minDist = 22;
+      simNodesCache.forEach(n => {
+        const dx = n.x - clickX;
+        const dy = n.y - clickY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = n;
+        }
+      });
+
+      const inspector = document.getElementById('graph-node-inspector');
+      if (closest && inspector) {
+        document.getElementById('insp-node-id').innerText = closest.display_id || closest.id;
+        document.getElementById('insp-node-role').innerText = closest.role.toUpperCase();
+        document.getElementById('insp-node-cluster').innerText = `#${closest.cluster_id}`;
+        document.getElementById('insp-node-volume').innerText = `BDT ${Number(closest.total_sent + closest.total_received).toLocaleString()}`;
+        inspector.style.display = 'block';
+      } else if (inspector) {
+        inspector.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      const view = document.getElementById('view-syndicate');
+      if (view && view.classList.contains('active') && cachedGraphNodes.length > 0) {
+        renderGraphCanvas(cachedGraphNodes, cachedGraphLinks);
+      }
+    });
+  }
+
+  let frameCount = 0;
+  if (graphAnimationReq) cancelAnimationFrame(graphAnimationReq);
+
+  function step() {
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw Edges
+    ctx.lineWidth = 1;
+    simLinks.forEach(l => {
+      ctx.beginPath();
+      ctx.moveTo(l.source.x, l.source.y);
+      ctx.lineTo(l.target.x, l.target.y);
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.22)';
+      ctx.stroke();
+    });
+
+    // Draw Nodes
+    simNodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+
+      let color = '#10b981';
+      if (n.role === 'mule_cashout') color = '#ef4444';
+      else if (n.role === 'layering') color = '#f59e0b';
+      else if (n.role === 'mastermind' || n.role === 'syndicate_hub') color = '#8b5cf6';
+
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '9px monospace';
+      ctx.fillText((n.display_id || n.id).substring(0, 11), n.x + n.radius + 3, n.y + 3);
+    });
+
+    frameCount++;
+    if (frameCount < 60) {
+      simLinks.forEach(l => {
+        const dx = l.target.x - l.source.x;
+        const dy = l.target.y - l.source.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = (dist - 80) * 0.005;
+        l.source.x += (dx / dist) * force;
+        l.source.y += (dy / dist) * force;
+        l.target.x -= (dx / dist) * force;
+        l.target.y -= (dy / dist) * force;
+      });
+      graphAnimationReq = requestAnimationFrame(step);
+    }
+  }
+
+  step();
+}
+
+async function quarantineCluster(clusterId) {
+  if (!confirm(`Are you sure you want to quarantine all accounts in Cluster #${clusterId}? This will freeze all funds and outgoing transfers.`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/graph/quarantine`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cluster_id: clusterId, reason: 'Mule syndicate detected via Louvain graph analysis' })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      alert(`Cluster #${clusterId} Quarantined: ${data.frozen_users_count} users frozen, ${data.frozen_transfers_count} transfers held.`);
+      loadGraphIntelligence();
+    }
+  } catch (err) {
+    alert('Quarantine failed: ' + err.message);
+  }
+}
+
+async function quarantineSingleNode(nodeId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/graph/quarantine`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ node_id: nodeId, reason: 'High-centrality hub frozen by risk analyst' })
+    });
+    if (res.ok) {
+      alert(`Node ${nodeId} frozen.`);
+      loadGraphIntelligence();
+    }
+  } catch (err) {
+    alert('Failed: ' + err.message);
+  }
+}
+
+function toggleGraphDecloak() {
+  graphDecloaked = !graphDecloaked;
+  const label = document.getElementById('decloak-btn-label');
+  if (label) label.innerText = graphDecloaked ? 'Cloak PII (Anonymized)' : 'Decloak PII (Analyst)';
+  loadGraphIntelligence();
+}
+
+/* --------------------------------------------------------------------------
+   3. DivisionalStressRadar & Macro Resilience
+   -------------------------------------------------------------------------- */
+async function loadResilienceDivisions() {
+  const container = document.getElementById('divisions-cards-grid');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/resilience/divisions`);
+    if (!res.ok) throw new Error('Failed to load divisions');
+    const data = await res.json();
+
+    container.innerHTML = data.divisions.map(d => `
+      <div class="division-card">
+        <div class="division-header">
+          <div>
+            <div class="division-name-en">${d.name}</div>
+            <div class="division-name-bn">${d.bengali_name}</div>
+          </div>
+          <span class="ticker-badge" style="background:${d.stress_grade === 'A' ? 'rgba(16,185,129,0.2)' : (d.stress_grade === 'B' ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)')}; color:${d.stress_grade === 'A' ? '#34d399' : (d.stress_grade === 'B' ? '#fbbf24' : '#f87171')};">
+            Grade ${d.stress_grade}
+          </span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-secondary);">
+          <div>Reserves: <strong style="color:var(--text-primary); font-family:var(--font-mono);">BDT ${(d.total_division_cash_bdt / 1000000).toFixed(1)}M</strong></div>
+          <div>Agents: <strong>${d.agent_count}</strong> &bull; 7d Alerts: <strong style="color:${d.fraud_frequency_7d > 10 ? '#f87171' : 'inherit'};">${d.fraud_frequency_7d}</strong></div>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-muted); display:flex; gap:4px; flex-wrap:wrap;">
+          ${(d.vulnerability_factors || []).map(v => `<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;">${v.replace(/_/g, ' ')}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Failed to load resilience divisions:', err);
+  }
+}
+
+async function executeStressSimulation() {
+  const scenario = document.getElementById('stress-scenario-select')?.value || 'flash_flood';
+  const severity = parseFloat(document.getElementById('stress-severity-slider')?.value || 0.8);
+  const duration = parseInt(document.getElementById('stress-duration-select')?.value || 48);
+
+  const payload = {
+    scenario: scenario,
+    severity: severity,
+    affected_divisions: ['Sylhet', 'Chittagong'],
+    duration_hours: duration
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/resilience/stress-test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const resultsBox = document.getElementById('stress-results-box');
+      if (resultsBox) resultsBox.style.display = 'block';
+
+      document.getElementById('stress-resilience-index').innerText = `${data.resilience_index} / 100`;
+      document.getElementById('stress-total-shortfall').innerText = `BDT ${Number(data.total_network_shortfall_bdt).toLocaleString()}`;
+      document.getElementById('stress-affected-count').innerText = `${data.affected_divisions_count} / 8`;
+
+      const tbody = document.getElementById('stress-injection-tbody');
+      if (tbody) {
+        tbody.innerHTML = data.emergency_injection_schedule.map(inj => `
+          <tr>
+            <td>${inj.from_source}</td>
+            <td><strong style="color:var(--text-primary);">${inj.to_division}</strong></td>
+            <td><strong style="color:var(--upay-emerald-light); font-family:var(--font-mono);">BDT ${Number(inj.injection_amount_bdt).toLocaleString()}</strong></td>
+            <td><span class="ticker-badge" style="background:${inj.priority === 'immediate' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}; color:${inj.priority === 'immediate' ? '#f87171' : '#fbbf24'};">${inj.priority.toUpperCase()}</span></td>
+            <td>${inj.transit_hours} Hours</td>
+          </tr>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    alert('Simulation error: ' + err.message);
+  }
+}
+
+async function loadRebalanceSchedule() {
+  const container = document.getElementById('rebalance-schedule-container');
+  if (!container) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/resilience/rebalance`);
+    if (res.ok) {
+      const data = await res.json();
+      container.innerHTML = `
+        <div style="margin-bottom:12px; font-size:0.84rem; color:var(--upay-emerald-light); font-weight:700;">
+          Network Stability Score: ${data.network_stability_score}% &bull; Total Float Reallocated: BDT ${Number(data.total_rebalanced_bdt).toLocaleString()}
+        </div>
+        <div class="alerts-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Source Vault</th>
+                <th>Destination</th>
+                <th>Rebalance Amount</th>
+                <th>Mode</th>
+                <th>Transit Time</th>
+                <th>Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.transfers.map(t => `
+                <tr>
+                  <td><strong>${t.source_division}</strong></td>
+                  <td><strong style="color:var(--ai-cyan);">${t.target_division}</strong></td>
+                  <td><strong style="color:var(--upay-emerald-light); font-family:var(--font-mono);">BDT ${Number(t.amount_bdt).toLocaleString()}</strong></td>
+                  <td>${t.mode.replace(/_/g, ' ')}</td>
+                  <td>${t.estimated_transit_hours}h</td>
+                  <td style="font-size:0.78rem; color:var(--text-secondary);">${t.rationale}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+  } catch (err) {
+    container.innerHTML = '<div style="color:var(--accent-rose); font-size:0.84rem;">Failed to load rebalance schedule.</div>';
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. AegisLab Gamified Threat Simulator
+   -------------------------------------------------------------------------- */
+const SIMULATOR_STATE = {
+  score: 15,
+  answers: {}
+};
+
+function handleSimulatorChoice(scenarioNum, choice) {
+  SIMULATOR_STATE.answers[scenarioNum] = choice;
+  const feedbackBox = document.getElementById(`sim${scenarioNum}-feedback`);
+  if (!feedbackBox) return;
+
+  if (scenarioNum === 1) {
+    if (choice === 'A') {
+      SIMULATOR_STATE.score = Math.min(95, SIMULATOR_STATE.score + 50);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(239,68,68,0.15)';
+      feedbackBox.style.color = '#f87171';
+      feedbackBox.innerHTML = '<span class="status-chip chip-trapped">TRAPPED</span> You sent 2,500 AED! In reality, there is no prize. Fraudsters vanish with your cash. Legitimate rewards never ask for fees.';
+    } else if (choice === 'B') {
+      SIMULATOR_STATE.score = Math.min(85, SIMULATOR_STATE.score + 25);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(245,158,11,0.15)';
+      feedbackBox.style.color = '#fbbf24';
+      feedbackBox.innerHTML = '<span class="status-chip chip-risky">RISKY</span> Engaging confirms your number is active. They will invent new excuses why the fee must be paid first.';
+    } else {
+      SIMULATOR_STATE.score = Math.max(5, SIMULATOR_STATE.score - 10);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(16,185,129,0.15)';
+      feedbackBox.style.color = '#34d399';
+      feedbackBox.innerHTML = '<span class="status-chip chip-safe">SAFE</span> Correct! You recognized the advance-fee scam signature and protected your hard-earned money.';
+    }
+  } else if (scenarioNum === 2) {
+    if (choice === 'A') {
+      SIMULATOR_STATE.score = Math.min(95, SIMULATOR_STATE.score + 55);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(239,68,68,0.15)';
+      feedbackBox.style.color = '#f87171';
+      feedbackBox.innerHTML = '<span class="status-chip chip-trapped">TRAPPED</span> Panic-induced transfer! Hospital impersonators exploit fear of family tragedy. Always verify with your family directly.';
+    } else if (choice === 'B') {
+      SIMULATOR_STATE.score = Math.min(85, SIMULATOR_STATE.score + 20);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(245,158,11,0.15)';
+      feedbackBox.style.color = '#fbbf24';
+      feedbackBox.innerHTML = '<span class="status-chip chip-risky">RISKY</span> Fraudsters often possess stolen photos of accident scenes from social media to trick victims.';
+    } else {
+      SIMULATOR_STATE.score = Math.max(5, SIMULATOR_STATE.score - 10);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(16,185,129,0.15)';
+      feedbackBox.style.color = '#34d399';
+      feedbackBox.innerHTML = '<span class="status-chip chip-safe">SAFE</span> Excellent! Calling your brother reveals he is safely having tea at home and his name was falsely used.';
+    }
+  } else if (scenarioNum === 3) {
+    if (choice === 'A') {
+      SIMULATOR_STATE.score = Math.min(95, SIMULATOR_STATE.score + 45);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(239,68,68,0.15)';
+      feedbackBox.style.color = '#f87171';
+      feedbackBox.innerHTML = '<span class="status-chip chip-trapped">TRAPPED</span> Overpayment trap! The original SMS was fake or funded with a stolen credit card that gets charged back, leaving you out 20,000 BDT.';
+    } else if (choice === 'B') {
+      SIMULATOR_STATE.score = Math.min(85, SIMULATOR_STATE.score + 15);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(245,158,11,0.15)';
+      feedbackBox.style.color = '#fbbf24';
+      feedbackBox.innerHTML = '<span class="status-chip chip-risky">UNRESOLVED</span> Delaying without verification still leaves you exposed.';
+    } else {
+      SIMULATOR_STATE.score = Math.max(5, SIMULATOR_STATE.score - 10);
+      feedbackBox.style.display = 'block';
+      feedbackBox.style.background = 'rgba(16,185,129,0.15)';
+      feedbackBox.style.color = '#34d399';
+      feedbackBox.innerHTML = '<span class="status-chip chip-safe">SAFE</span> Masterful compliance! You checked your official balance and directed genuine errors to bank customer care.';
+    }
+  }
+
+  updateThreatMeter();
+}
+
+function updateThreatMeter() {
+  const display = document.getElementById('threat-score-display');
+  const fill = document.getElementById('threat-meter-fill');
+  const summary = document.getElementById('threat-verdict-summary');
+
+  if (!display || !fill) return;
+
+  const score = SIMULATOR_STATE.score;
+  fill.style.width = `${score}%`;
+
+  if (score >= 70) {
+    display.innerText = `${score}% (CRITICAL THREAT)`;
+    display.style.color = '#f87171';
+    fill.style.background = '#ef4444';
+    if (summary) summary.innerText = 'High vulnerability detected. Susceptible to emotional urgency and advance-fee social engineering.';
+  } else if (score >= 40) {
+    display.innerText = `${score}% (ELEVATED RISK)`;
+    display.style.color = '#fbbf24';
+    fill.style.background = '#f59e0b';
+    if (summary) summary.innerText = 'Moderate vulnerability. Remember to verify claims offline before authorizing funds.';
+  } else {
+    display.innerText = `${score}% (PROTECTED)`;
+    display.style.color = '#34d399';
+    fill.style.background = '#10b981';
+    if (summary) summary.innerText = 'Strong defense instincts. Vigilance successfully prevents fraud loss.';
+  }
+}
+
+function resetThreatSimulator() {
+  SIMULATOR_STATE.score = 15;
+  SIMULATOR_STATE.answers = {};
+  for (let i = 1; i <= 3; i++) {
+    const fb = document.getElementById(`sim${i}-feedback`);
+    if (fb) fb.style.display = 'none';
+    const inputs = document.querySelectorAll(`input[name="sim${i}"]`);
+    inputs.forEach(inp => { inp.checked = false; });
+  }
+  updateThreatMeter();
+}
+
+/* --------------------------------------------------------------------------
+   5. BFIU Form 2 STR Regulatory Filing Modal
+   -------------------------------------------------------------------------- */
+async function openBfiuModal(alertId, transferId, score, amountBDT, reasons) {
+  const modal = document.getElementById('bfiu-modal');
+  if (!modal) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/compliance/generate-str`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alert_id: alertId, analyst_id: 'u_analyst_01' })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('bfiu-str-ref').innerText = data.str_reference;
+      document.getElementById('bfiu-date').innerText = data.filing_date;
+      document.getElementById('bfiu-entity').innerText = data.reporting_entity;
+      document.getElementById('bfiu-account').innerText = data.subject_account;
+      document.getElementById('bfiu-amount').innerText = `BDT ${Number(data.transaction_amount_bdt).toLocaleString()}`;
+      document.getElementById('bfiu-alert-id').innerText = alertId;
+      document.getElementById('bfiu-risk').innerText = `${data.risk_score} / 100`;
+      document.getElementById('bfiu-narrative').innerText = data.narrative;
+      document.getElementById('bfiu-sha256').innerText = data.sha256_hash;
+
+      const chipsBox = document.getElementById('bfiu-indicators-chips');
+      if (chipsBox) {
+        chipsBox.innerHTML = (data.anomaly_indicators || []).map(ind => `
+          <span style="background:rgba(239,68,68,0.2); color:#f87171; border:1px solid rgba(239,68,68,0.4); padding:2px 8px; border-radius:4px; font-size:0.72rem; font-weight:700;">
+            ${ind}
+          </span>
+        `).join('');
+      }
+
+      modal.classList.add('open');
+    }
+  } catch (err) {
+    alert('Error generating STR: ' + err.message);
+  }
+}
+
+window.triggerPreFlightShieldCheck = triggerPreFlightShieldCheck;
+window.cancelShieldTransfer = cancelShieldTransfer;
+window.confirmShieldProceed = confirmShieldProceed;
+window.loadGraphIntelligence = loadGraphIntelligence;
+window.quarantineCluster = quarantineCluster;
+window.quarantineSingleNode = quarantineSingleNode;
+window.toggleGraphDecloak = toggleGraphDecloak;
+window.loadResilienceDivisions = loadResilienceDivisions;
+window.executeStressSimulation = executeStressSimulation;
+window.loadRebalanceSchedule = loadRebalanceSchedule;
+window.handleSimulatorChoice = handleSimulatorChoice;
+window.resetThreatSimulator = resetThreatSimulator;
+window.openBfiuModal = openBfiuModal;
+
 

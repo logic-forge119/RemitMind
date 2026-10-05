@@ -209,3 +209,60 @@ def test_ai_endpoints():
     assert liq_data["deficit"] == 170000.0
     assert "advice_plan" in liq_data
 
+def test_readiness_probe():
+    res = client.get("/health/ready")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"
+    assert "users_count" in data
+
+def test_transfer_corridor_and_amount_limits():
+    # 1. Invalid corridor
+    res_bad_corridor = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "INVALID_CORRIDOR",
+        "amount_src": 500.0
+    })
+    assert res_bad_corridor.status_code == 422
+
+    # 2. Amount below minimum
+    res_too_low = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "AED_BDT",
+        "amount_src": 5.0
+    })
+    assert res_too_low.status_code == 422
+
+    # 3. Amount above maximum
+    res_too_high = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "AED_BDT",
+        "amount_src": 999999.0
+    })
+    assert res_too_high.status_code == 422
+
+def test_analyst_key_security():
+    # Invalid key must be rejected with 401
+    res = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "wrong-secret-key"})
+    assert res.status_code == 401
+
+    # Valid key must succeed
+    res_valid = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "upay-risk-secret"})
+    assert res_valid.status_code == 200
+
+def test_docs_hub():
+    res_list = client.get("/api/v1/docs")
+    assert res_list.status_code == 200
+    docs = res_list.json()["documents"]
+    assert len(docs) >= 5
+
+    res_prd = client.get("/api/v1/docs/prd")
+    assert res_prd.status_code == 200
+    assert "PRD" in res_prd.json()["title"]
+    assert len(res_prd.json()["content"]) > 100
+
+

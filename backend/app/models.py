@@ -10,6 +10,8 @@ class User(Base):
     role = Column(String, nullable=False)  # 'sender', 'receiver', 'agent', 'analyst'
     country = Column(String, nullable=True)
     language = Column(String, default="bn")
+    is_quarantined = Column(Integer, default=0)
+    quarantine_reason = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
 class Agent(Base):

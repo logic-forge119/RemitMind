@@ -15,13 +15,30 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from app.config import settings
 from app.db import engine, Base, SessionLocal
-from app.models import User
-from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai
+from app.models import (
+    User, Agent, Goal, RateHistory, Transfer,
+    RiskAlert, ReviewAction, AgentCashDaily, ModelRun
+)
+from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai, scamshield, graph, resilience, compliance, docs
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure tables exist
+    # Ensure all 9 tables exist in database
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_quarantined INTEGER DEFAULT 0"))
+            conn.commit()
+    except Exception:
+        pass
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN quarantine_reason TEXT"))
+            conn.commit()
+    except Exception:
+        pass
     db = SessionLocal()
     try:
         user_count = db.query(User).count()
@@ -63,8 +80,13 @@ app.include_router(agents.router)
 app.include_router(metrics.router)
 app.include_router(dev.router)
 app.include_router(ai.router)
+app.include_router(scamshield.router)
+app.include_router(graph.router)
+app.include_router(resilience.router)
+app.include_router(compliance.router)
+app.include_router(docs.router)
 
-# Health Check per 05_API_DOCS.md
+# Health & Readiness Probes
 @app.get("/health", tags=["Health"])
 def health_check():
     return {
@@ -74,6 +96,26 @@ def health_check():
         "environment": "production-ready",
         "ai_engines": ["IsolationForest", "RateForecaster", "DemandForecaster", "GroundedExplainer"]
     }
+
+@app.get("/health/ready", tags=["Health"])
+def readiness_check():
+    # Verify database connection
+    db = SessionLocal()
+    try:
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
+        # Simple query to verify DB is responsive
+        u_count = db.query(User).count()
+        return {
+            "status": "ready",
+            "database": "connected",
+            "users_count": u_count,
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"status": "not_ready", "error": str(e)})
+    finally:
+        db.close()
 
 # Mount Static Frontend Assets
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
