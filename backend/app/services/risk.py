@@ -124,7 +124,7 @@ class AnomalyScorer:
         hour_of_day: int = 14,
         distinct_senders_24h: int = 1,
         corridor: str = "AED_BDT",
-        simulate_anomaly: bool = False
+        **kwargs
     ) -> dict:
         """
         Calculates calibrated 0-100 risk score, TreeSHAP feature attributions,
@@ -132,19 +132,6 @@ class AnomalyScorer:
         """
         std_val = sender_std if sender_std > 0 else 500.0
         amount_z = (amount_src - sender_avg) / std_val
-
-        # Simulated attack override
-        if simulate_anomaly:
-            velocity_1h = max(4, velocity_1h)
-            is_new_receiver = True
-            is_new_device = True
-            sim_swap_recent = True
-            device_age_days = 1
-            hour_of_day = 2
-            amount_z = max(4.2, amount_z)
-            accounts_per_device = max(3, accounts_per_device)
-            time_since_last_txn_hours = 0.2
-            day_of_week_dev = 0.85
 
         is_night = 1 if (hour_of_day <= 5 or hour_of_day >= 23) else 0
         rule = CORRIDOR_RULES.get(corridor.upper(), CORRIDOR_RULES["AED_BDT"])
@@ -235,15 +222,15 @@ class AnomalyScorer:
                         })
 
             except Exception as e:
-                # Fallback to Isolation Forest on unexpected failure
-                base_score = 65.0 if simulate_anomaly else 15.0
+                # Fallback to baseline on unexpected inference failure
+                base_score = 15.0
 
         # ----------------------------------------------------------------------
         # PATH B: Unsupervised Isolation Forest Fallback
         # ----------------------------------------------------------------------
         else:
-            base_score = 65.0 if simulate_anomaly else 15.0
-            if self.iso_model is not None and not simulate_anomaly:
+            base_score = 15.0
+            if self.iso_model is not None:
                 try:
                     iso_features = np.array([[
                         amount_z,

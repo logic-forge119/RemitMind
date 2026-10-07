@@ -44,10 +44,11 @@ def test_treeshap_feature_attributions_on_anomaly():
     """Verify TreeSHAP attributions identify top risk drivers for anomalous transactions."""
     result = anomaly_scorer.score_transfer(
         amount_src=9500.0,
+        sender_avg=1500.0,
+        sender_std=300.0,
         is_new_receiver=True,
         is_new_device=True,
-        velocity_1h=5,
-        simulate_anomaly=True
+        velocity_1h=5
     )
     
     assert result["score"] >= 50.0
@@ -84,8 +85,7 @@ def test_benign_transfer_scoring():
         is_new_device=False,
         hour_of_day=14,
         distinct_senders_24h=1,
-        corridor="AED_BDT",
-        simulate_anomaly=False
+        corridor="AED_BDT"
     )
     
     assert result["score"] < 40.0
@@ -150,8 +150,7 @@ def test_legitimate_high_value_transfers_do_not_flag_false_positives():
             is_new_device=False,
             hour_of_day=15,
             distinct_senders_24h=1,
-            corridor="AED_BDT",
-            simulate_anomaly=False
+            corridor="AED_BDT"
         )
         # Must not be flagged as severe fraud, and never blocked
         assert res["status"] in ["completed", "in_review"], f"High value {amount} had unexpected status {res['status']}"
@@ -172,14 +171,21 @@ def test_fallback_to_isolation_forest():
     fallback_scorer.model_version = "risk-v1.0-iforest"
     
     # Normal transaction scoring with fallback
-    res_normal = fallback_scorer.score_transfer(amount_src=1500.0, simulate_anomaly=False)
+    res_normal = fallback_scorer.score_transfer(amount_src=1500.0)
     assert 0.0 <= res_normal["score"] <= 100.0
     assert res_normal["status"] in ["completed", "in_review"]
     assert res_normal["model_version"] == "risk-v1.0-iforest"
     assert res_normal["status"] != "blocked"
     
     # Anomaly scoring with fallback
-    res_anomaly = fallback_scorer.score_transfer(amount_src=8000.0, simulate_anomaly=True)
+    res_anomaly = fallback_scorer.score_transfer(
+        amount_src=8000.0,
+        sender_avg=1000.0,
+        sender_std=200.0,
+        velocity_1h=5,
+        is_new_receiver=True,
+        is_new_device=True
+    )
     assert res_anomaly["score"] >= 50.0
     assert res_anomaly["status"] == "in_review"
     assert res_anomaly["model_version"] == "risk-v1.0-iforest"
@@ -194,8 +200,7 @@ def test_api_create_transfer_returns_conformal_and_shap_fields():
         "sender_id": "u_send_phase2_01",
         "receiver_id": "u_recv_phase2_01",
         "corridor": "AED_BDT",
-        "amount_src": 6500.0,
-        "simulate_anomaly": True
+        "amount_src": 6500.0
     }
     res = client.post("/api/v1/transfers", json=payload)
     assert res.status_code == 201
@@ -226,8 +231,7 @@ def test_api_analyst_alert_detail_returns_conformal_and_shap_fields():
         "sender_id": "u_send_phase2_02",
         "receiver_id": "u_recv_phase2_02",
         "corridor": "AED_BDT",
-        "amount_src": 8500.0,
-        "simulate_anomaly": True
+        "amount_src": 8500.0
     }
     t_res = client.post("/api/v1/transfers", json=t_payload)
     assert t_res.status_code == 201

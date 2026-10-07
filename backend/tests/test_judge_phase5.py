@@ -302,3 +302,78 @@ def test_privacy_preserving_pii_cloaking():
     tokenized = tokenize_phone(phone)
     assert "+88017***5678" in tokenized
     assert "TOK-" in tokenized
+
+
+# -----------------------------------------------------------------------------
+# 9. No Fake Shortcuts & Deterministic Risk Scoring
+# -----------------------------------------------------------------------------
+
+def test_identical_transactions_produce_identical_scores_no_client_shortcuts():
+    """Verify that client cannot tamper with or simulate anomaly score via request body."""
+    from app.services.risk import anomaly_scorer
+    # Two identical feature vectors must evaluate to identical scores
+    r1 = anomaly_scorer.score_transfer(amount_src=3500.0, sender_avg=3000.0, sender_std=400.0, velocity_1h=1)
+    r2 = anomaly_scorer.score_transfer(amount_src=3500.0, sender_avg=3000.0, sender_std=400.0, velocity_1h=1)
+    assert r1["score"] == r2["score"]
+    assert r1["status"] == r2["status"]
+    assert r1["calibrated_prob"] == r2["calibrated_prob"]
+
+    # Passing simulated or legacy kwargs must NOT alter score
+    r3 = anomaly_scorer.score_transfer(amount_src=3500.0, sender_avg=3000.0, sender_std=400.0, velocity_1h=1, simulate_anomaly=True)
+    assert r3["score"] == r1["score"]
+
+
+# -----------------------------------------------------------------------------
+# 10. Production Security Gating & Ownership Enforcement
+# -----------------------------------------------------------------------------
+
+def test_production_mode_rejects_dev_tokens_and_endpoints(monkeypatch):
+    """Verify that production mode strictly disallows dev tokens, dev headers, and dev endpoints."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "APP_ENV", "production")
+    monkeypatch.setattr(settings, "DEV_AUTH_ENABLED", False)
+
+    # 1. /api/v1/auth/dev-token must be 403 forbidden in production
+    res = client.post("/api/v1/auth/dev-token", json={"role": "analyst"})
+    assert res.status_code == 403
+    assert res.json()["detail"]["error"] == "dev_auth_disabled"
+
+    # 2. dev- headers must be rejected in production
+    res_hdr = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "dev-analyst"})
+    assert res_hdr.status_code == 401
+
+    # 3. /api/v1/dev endpoints must be 403 forbidden in production
+    res_dev = client.post("/api/v1/dev/replay-attack")
+    assert res_dev.status_code == 403
+
+
+def test_production_secrets_validation_fails_on_insecure_defaults(monkeypatch):
+    """Verify that validate_production_secrets raises RuntimeError on insecure defaults in production."""
+    from app.config import Settings
+
+    prod_settings = Settings()
+    prod_settings.APP_ENV = "production"
+
+    monkeypatch.setenv("JWT_SECRET", "dev-remitmind-jwt-secret-key-32-bytes")
+    with pytest.raises(RuntimeError) as exc_info:
+        prod_settings.validate_production_secrets()
+    assert "FATAL CONFIGURATION ERROR" in str(exc_info.value)
+
+
+def test_transfer_ownership_enforcement():
+    """Verify that non-analyst/admin users cannot view or initiate transfers for other sender IDs."""
+    token_user_a = create_access_token({"sub": "u_alice_101", "role": "sender"})
+    headers_a = {"Authorization": f"Bearer {token_user_a}"}
+
+    # Attempting to send as u_bob_202 must fail with 403
+    payload = {
+        "sender_id": "u_bob_202",
+        "receiver_id": "u_recv_555",
+        "corridor": "AED_BDT",
+        "amount_src": 1000.0
+    }
+    res = client.post("/api/v1/transfers", json=payload, headers=headers_a)
+    assert res.status_code == 403
+    assert "ownership_violation" in res.json()["detail"]["error"]
+

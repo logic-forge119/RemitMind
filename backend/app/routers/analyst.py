@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from app.db import get_db
-from app.models import RiskAlert, Transfer, ReviewAction
+from app.models import RiskAlert, Transfer, ReviewAction, AuditEvent
 from app.schemas import RiskAlertDetailResponse, AnalystDecisionRequest, AnalystDecisionResponse, AnalystKPIResponse
 from app.auth import require_role
 from app.services.risk import anomaly_scorer
+from app.services.features import extract_transfer_features
 
 router = APIRouter(prefix="/api/v1/analyst", tags=["Analyst Risk Operations"])
 
@@ -52,10 +53,33 @@ def get_alert_detail(id: str, db: Session = Depends(get_db)):
     q_hat = round(anomaly_scorer.q_hat, 4)
 
     if trx:
+        feat = extract_transfer_features(
+            db=db,
+            sender_id=trx.sender_id,
+            receiver_id=trx.receiver_id,
+            amount_src=trx.amount_src,
+            device_id=trx.device_id,
+            corridor=trx.corridor or "AED_BDT"
+        )
         scored = anomaly_scorer.score_transfer(
             amount_src=trx.amount_src,
-            corridor=trx.corridor or "AED_BDT",
-            simulate_anomaly=(alert.score >= 50.0)
+            sender_avg=feat["sender_avg"],
+            sender_std=feat["sender_std"],
+            velocity_1h=feat["velocity_1h"],
+            frequency_7d=feat["frequency_7d"],
+            frequency_30d=feat["frequency_30d"],
+            time_since_last_txn_hours=feat["time_since_last_txn_hours"],
+            day_of_week_dev=feat["day_of_week_dev"],
+            is_dormant_reactivation=feat["is_dormant_reactivation"],
+            device_age_days=feat["device_age_days"],
+            accounts_per_device=feat["accounts_per_device"],
+            sim_swap_recent=feat["sim_swap_recent"],
+            country_jump=feat["country_jump"],
+            is_new_receiver=feat["is_new_receiver"],
+            is_new_device=feat["is_new_device"],
+            hour_of_day=feat["hour_of_day"],
+            distinct_senders_24h=feat["distinct_senders_24h"],
+            corridor=trx.corridor or "AED_BDT"
         )
         factors = scored.get("factors", [])
         prediction_set = scored.get("prediction_set", ["LEGITIMATE"])
@@ -118,6 +142,22 @@ def record_analyst_decision(
         is_fraud_label=fraud_label
     )
     db.add(action)
+
+    # Append-only Audit Trail: Record immutable audit event
+    audit_evt = AuditEvent(
+        id=f"aud_{uuid.uuid4().hex[:8]}",
+        event_type="ANALYST_DISPOSITION",
+        actor_id=analyst_sub,
+        details=json.dumps({
+            "alert_id": alert.id,
+            "transfer_id": alert.transfer_id,
+            "decision": payload.decision,
+            "is_fraud_label": fraud_label,
+            "note": payload.note or ""
+        }),
+        ip_address="127.0.0.1"
+    )
+    db.add(audit_evt)
     db.commit()
 
     return {

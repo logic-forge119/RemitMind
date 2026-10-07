@@ -39,7 +39,6 @@ class TransferCreateRequest(BaseModel):
     channel: Optional[str] = "app"
     agent_id: Optional[str] = None
     goals: Optional[List[PlanGoal]] = None
-    simulate_anomaly: Optional[bool] = False
 
 class RiskFactor(BaseModel):
     name: str

@@ -1,6 +1,6 @@
 import uuid
 import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db import get_db
@@ -8,8 +8,16 @@ from app.models import Transfer, RiskAlert
 from app.services.rules import calculate_fees_and_payout
 from app.services.risk import anomaly_scorer
 from app.services.explain import generate_analyst_explanation
+from app.config import settings
 
-router = APIRouter(prefix="/api/v1/dev", tags=["Development & Seeding"])
+def require_dev_mode():
+    if getattr(settings, "APP_ENV", "development").lower() == "production":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dev and adversary replay endpoints are strictly disabled in production mode."
+        )
+
+router = APIRouter(prefix="/api/v1/dev", tags=["Development & Seeding"], dependencies=[Depends(require_dev_mode)])
 
 class ReplayAttackRequest(BaseModel):
     attack_type: str  # "account_takeover", "mule_fan_in", "social_scam"
@@ -99,8 +107,7 @@ def replay_attack(payload: ReplayAttackRequest, db: Session = Depends(get_db)):
         is_new_receiver=is_new_receiver,
         is_new_device=is_new_device,
         velocity_1h=velocity_1h,
-        hour_of_day=hour_of_day,
-        simulate_anomaly=True
+        hour_of_day=hour_of_day
     )
     
     # Adjust reason codes and attribution for scenario fidelity

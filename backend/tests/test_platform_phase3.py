@@ -244,8 +244,7 @@ def test_str_output_contains_only_db_verified_evidence_ids():
             "sender_id": "u_str_test_sender",
             "receiver_id": "u_str_test_receiver",
             "corridor": "AED_BDT",
-            "amount_src": 8500.0,
-            "simulate_anomaly": True
+            "amount_src": 8500.0
         }
         res_tx = client.post("/api/v1/transfers", json=tx_payload)
         assert res_tx.status_code == 201

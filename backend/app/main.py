@@ -23,6 +23,9 @@ from app.routers import plans, transfers, analyst, receiver, agents, metrics, de
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Enforce mandatory secrets validation (fails fast if in production with insecure defaults)
+    settings.validate_production_secrets()
+
     # Ensure all 9 tables exist in database
     Base.metadata.create_all(bind=engine)
     try:
