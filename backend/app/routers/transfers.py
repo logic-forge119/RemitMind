@@ -1,6 +1,6 @@
 import uuid
 import json
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.models import Transfer, RiskAlert
@@ -8,11 +8,14 @@ from app.schemas import TransferCreateRequest, TransferResponse
 from app.services.rules import calculate_fees_and_payout, CORRIDOR_RULES
 from app.services.risk import anomaly_scorer
 from app.services.explain import generate_analyst_explanation
+from app.limiter import limiter
+from app.routers.websocket import alert_manager
 
 router = APIRouter(prefix="/api/v1/transfers", tags=["Transfers"])
 
 @router.post("", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
-def create_transfer(payload: TransferCreateRequest, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def create_transfer(request: Request, payload: TransferCreateRequest, db: Session = Depends(get_db)):
     # 0. Validate Corridor & Business Limits
     corridor_key = payload.corridor.upper()
     if corridor_key not in CORRIDOR_RULES:
@@ -38,6 +41,7 @@ def create_transfer(payload: TransferCreateRequest, db: Session = Depends(get_db
         is_new_receiver=payload.simulate_anomaly or (payload.amount_src >= 5000),
         is_new_device=payload.simulate_anomaly,
         velocity_1h=3 if payload.simulate_anomaly else 1,
+        corridor=payload.corridor,
         simulate_anomaly=payload.simulate_anomaly
     )
 
@@ -88,6 +92,21 @@ def create_transfer(payload: TransferCreateRequest, db: Session = Depends(get_db
 
     db.commit()
 
+    if risk_result["status"] == "in_review":
+        import asyncio
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(alert_manager.broadcast_alert({
+                "alert_id": alert_id,
+                "transfer_id": transfer_id,
+                "score": risk_result["score"],
+                "reason_codes": risk_result["reason_codes"],
+                "suggested_action": risk_result["suggested_action"],
+                "amount_bdt": pricing["net_bdt"]
+            }))
+        except Exception:
+            pass
+
     return {
         "transfer_id": transfer_id,
         "status": risk_result["status"],
@@ -95,7 +114,12 @@ def create_transfer(payload: TransferCreateRequest, db: Session = Depends(get_db
         "reason_codes": risk_result["reason_codes"],
         "message": message,
         "amount_bdt": pricing["net_bdt"],
-        "fee_bdt": pricing["fee_bdt"]
+        "fee_bdt": pricing["fee_bdt"],
+        "factors": risk_result.get("factors", []),
+        "prediction_set": risk_result.get("prediction_set", []),
+        "is_doubt": risk_result.get("is_doubt", False),
+        "q_hat": risk_result.get("q_hat"),
+        "suggested_action": risk_result.get("suggested_action", "none")
     }
 
 @router.get("")
