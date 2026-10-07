@@ -6,10 +6,10 @@
   <title>RemitMind | AI-Powered Remittance Intelligence & Safety Layer for upay</title>
   <meta name="description" content="RemitMind empowers Bangladeshi migrant workers and upay with AI send-plan recommendations, international payments, explainable fraud detection with zero auto-blocks, plain Bangla summaries, and agent liquidity forecasting.">
   
-  <!-- Modern Google Fonts: Outfit & Inter & JetBrains Mono -->
+  <!-- Modern Google Fonts: Hind Siliguri, Geist, Geist Mono, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -19,13 +19,16 @@
 </head>
 <body>
 
+  <!-- Accessibility Skip Link -->
+  <a href="#hero" class="skip-link">Skip to main content</a>
+
   <!-- Ambient AI Glow Aura -->
   <div class="ai-ambient-glow" aria-hidden="true"></div>
 
   <!-- Top Real-time FX Ticker -->
   <div class="ticker-bar" id="ticker-banner">
     <div class="container">
-      <div class="ticker-content">
+      <div class="ticker-content tabular-nums">
         <div class="ticker-item">
           <span class="ticker-badge">LIVE FX</span>
           <span>AED/BDT: <strong>32.85</strong> <span class="ticker-rate-pos">+1.2%</span></span>
@@ -90,7 +93,7 @@
             </span>
           </button>
 
-          <a href="login.html" class="btn btn-secondary btn-sm" id="btn-nav-login" style="display:inline-flex; align-items:center; gap:0.4rem;">
+          <a href="login.html" class="btn btn-secondary btn-sm" id="btn-nav-login">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             <span>Sign In</span>
           </a>
@@ -168,7 +171,7 @@
   </section>
 
   <!-- Personas & Problems Section -->
-  <section class="container" id="solutions" style="padding-bottom: 70px;">
+  <section class="container personas-section" id="solutions">
     <div class="section-header">
       <span class="section-tag">Human Centered Remittance</span>
       <h2 class="section-title">Four Lives Changed by One Intelligent Flow</h2>
@@ -435,27 +438,27 @@
 
               <p style="font-size:0.85rem; margin-bottom:16px;">Test the hybrid Isolation Forest + rule engine against synthetic fraud patterns:</p>
 
-              <div style="display:flex; flex-direction:column; gap:10px;">
-                <button class="btn btn-secondary scenario-picker-btn" data-scenario="normal" style="justify-content:flex-start; text-align:left;">
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button type="button" class="scenario-picker-btn" data-scenario="normal">
                   <span class="pulse-dot" style="background:var(--upay-emerald); box-shadow:0 0 6px var(--upay-emerald);"></span>
                   <div>
-                    <div style="font-weight:700;">Scenario A: Normal Expat Transfer</div>
+                    <div style="font-weight:700; font-size:0.9rem;">Scenario A: Normal Expat Transfer</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">Score ~14 &bull; Rahim to wife &bull; Instant Pass</div>
                   </div>
                 </button>
 
-                <button class="btn btn-secondary scenario-picker-btn active" data-scenario="mule_ring" style="justify-content:flex-start; text-align:left;">
+                <button type="button" class="scenario-picker-btn active" data-scenario="mule_ring">
                   <span class="pulse-dot" style="background:var(--accent-amber); box-shadow:0 0 6px var(--accent-amber);"></span>
                   <div>
-                    <div style="font-weight:700;">Scenario B: Mule Ring Velocity Spike</div>
+                    <div style="font-weight:700; font-size:0.9rem;">Scenario B: Mule Ring Velocity Spike</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">Score 78 &bull; 3 bursts in 45m &bull; Flagged</div>
                   </div>
                 </button>
 
-                <button class="btn btn-secondary scenario-picker-btn" data-scenario="account_takeover" style="justify-content:flex-start; text-align:left;">
+                <button type="button" class="scenario-picker-btn" data-scenario="account_takeover">
                   <span class="pulse-dot" style="background:var(--accent-rose); box-shadow:0 0 6px var(--accent-rose);"></span>
                   <div>
-                    <div style="font-weight:700;">Scenario C: Account Takeover Attempt</div>
+                    <div style="font-weight:700; font-size:0.9rem;">Scenario C: Account Takeover Attempt</div>
                     <div style="font-size:0.75rem; color:var(--text-muted);">Score 89 &bull; New device at 3 AM &bull; Flagged</div>
                   </div>
                 </button>
