@@ -44,8 +44,8 @@ def test_graph_network_decloak_analyst():
     first_node_unauth = res_unauth.json()["nodes"][0]
     assert first_node_unauth["display_id"].startswith("WALLET-")
 
-    # Decloak with valid analyst key
-    res_auth = client.get("/api/v1/graph/network?decloak=true", headers={"X-API-Key": "upay-risk-secret"})
+    # Decloak with valid analyst JWT / dev credentials
+    res_auth = client.get("/api/v1/graph/network?decloak=true", headers={"X-API-Key": "dev-analyst"})
     assert res_auth.status_code == 200
     first_node_auth = res_auth.json()["nodes"][0]
     assert "real_id" in first_node_auth
@@ -83,7 +83,7 @@ def test_quarantine_cluster():
         "cluster_id": target_cluster_id,
         "reason": "Suspected synthetic mule ring automated freeze"
     }
-    q_res = client.post("/api/v1/graph/quarantine", json=payload)
+    q_res = client.post("/api/v1/graph/quarantine", json=payload, headers={"X-API-Key": "dev-analyst"})
     assert q_res.status_code == 200
     data = q_res.json()
     assert data["status"] == "quarantined"
