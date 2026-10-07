@@ -15,7 +15,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-remitmind-jwt-env-secret}
       - RISK_REVIEW_THRESHOLD=40.0
       - RISK_HIGH_THRESHOLD=70.0
-      - ALLOWED_ORIGINS=*
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000,https://remitmind.upay.bd
       - APP_ENV=production
     volumes:
       - remitmind-data:/app/data
