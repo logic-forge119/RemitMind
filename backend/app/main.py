@@ -15,13 +15,30 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from app.config import settings
 from app.db import engine, Base, SessionLocal
-from app.models import User
-from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai
+from app.models import (
+    User, Agent, Goal, RateHistory, Transfer,
+    RiskAlert, ReviewAction, AgentCashDaily, ModelRun
+)
+from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai, scamshield, graph, resilience, compliance, docs, policy, websocket
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure tables exist
+    # Ensure all 9 tables exist in database
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN is_quarantined INTEGER DEFAULT 0"))
+            conn.commit()
+    except Exception:
+        pass
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN quarantine_reason TEXT"))
+            conn.commit()
+    except Exception:
+        pass
     db = SessionLocal()
     try:
         user_count = db.query(User).count()
@@ -36,6 +53,10 @@ async def lifespan(app: FastAPI):
         db.close()
     yield
 
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
+from app.auth import auth_router
+
 app = FastAPI(
     title="RemitMind API",
     description="AI-Powered Remittance Intelligence & Safety Layer for upay Bangladesh",
@@ -44,6 +65,23 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Attach slowapi rate limiter to state
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_handler(request, exc: RateLimitExceeded):
+    """Bilingual 429 Rate Limit Exceeded response."""
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "rate_limit_exceeded",
+            "detail": "Too many requests. Rate limit exceeded (10 req/min on transfers). Please wait before trying again.",
+            "detail_bn": "অনুরোধের সীমা অতিক্রম করেছে (প্রতি মিনিটে সর্বোচ্চ ১০টি)। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করে পুনরায় চেষ্টা করুন।",
+            "retry_after_seconds": 60
+        },
+        headers={"Retry-After": "60"}
+    )
 
 # CORS Setup
 app.add_middleware(
@@ -55,6 +93,7 @@ app.add_middleware(
 )
 
 # Include API Routers
+app.include_router(auth_router)
 app.include_router(plans.router)
 app.include_router(transfers.router)
 app.include_router(analyst.router)
@@ -63,8 +102,16 @@ app.include_router(agents.router)
 app.include_router(metrics.router)
 app.include_router(dev.router)
 app.include_router(ai.router)
+app.include_router(scamshield.router)
+app.include_router(graph.router)
+app.include_router(resilience.router)
+app.include_router(compliance.router)
+app.include_router(docs.router)
+app.include_router(policy.router)
+app.include_router(websocket.router)
 
-# Health Check per 05_API_DOCS.md
+
+# Health & Readiness Probes
 @app.get("/health", tags=["Health"])
 def health_check():
     return {
@@ -74,6 +121,26 @@ def health_check():
         "environment": "production-ready",
         "ai_engines": ["IsolationForest", "RateForecaster", "DemandForecaster", "GroundedExplainer"]
     }
+
+@app.get("/health/ready", tags=["Health"])
+def readiness_check():
+    # Verify database connection
+    db = SessionLocal()
+    try:
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
+        # Simple query to verify DB is responsive
+        u_count = db.query(User).count()
+        return {
+            "status": "ready",
+            "database": "connected",
+            "users_count": u_count,
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"status": "not_ready", "error": str(e)})
+    finally:
+        db.close()
 
 # Mount Static Frontend Assets
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent

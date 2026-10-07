@@ -6,10 +6,10 @@
   <title>RemitMind &bull; Sign In</title>
   <meta name="description" content="Sign in to RemitMind AI remittance intelligence & safety layer for upay. Global rate forecasting, explainable fraud radar, and agent liquidity.">
   
-  <!-- Google Fonts: Outfit & Inter & JetBrains Mono -->
+  <!-- Google Fonts: Hind Siliguri, Geist, Geist Mono, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -19,6 +19,9 @@
   <link rel="stylesheet" href="css/login.css">
 </head>
 <body class="login-page-body">
+
+  <!-- Accessibility Skip Link -->
+  <a href="#login-card" class="skip-link">Skip to login form</a>
 
   <!-- Ambient AI Background Glow -->
   <div class="login-ambient-glow" aria-hidden="true"></div>
@@ -75,7 +78,7 @@
         <!-- Live Telemetry Pill -->
         <div class="login-telemetry-pill">
           <span class="pulse-dot"></span>
-          <span>Live Hubs: DXB • RUH • KUL • LHR ➔ DAC</span>
+          <span>Live Hubs: DXB &bull; RUH &bull; KUL &bull; LHR &rarr; DAC</span>
         </div>
       </div>
     </section>
@@ -84,7 +87,21 @@
     <section class="login-form-panel">
       <div class="login-header-group">
         <h1 class="login-heading">Welcome back</h1>
-        <p class="login-subheading">Sign in to your account</p>
+        <p class="login-subheading">Sign in to your account or pick a demo persona below</p>
+      </div>
+
+      <!-- 1-Click Persona Switcher for Quick Verification -->
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.05em; display:block; margin-bottom:6px;">
+          Demo Personas (1-Click Switch):
+        </label>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="preset-chip persona-chip" data-email="gajiulislam@gmail.com" data-name="Gajiul Islam" data-role="Sender">Sender (Dubai)</button>
+          <button type="button" class="preset-chip persona-chip" data-email="amina.begum@upay.bd" data-name="Amina Begum" data-role="Receiver">Receiver (Sylhet)</button>
+          <button type="button" class="preset-chip persona-chip" data-email="nusrat.analyst@upay.bd" data-name="Nusrat Jahan" data-role="Analyst">Risk Analyst</button>
+          <button type="button" class="preset-chip persona-chip" data-email="admin.compliance@upay.bd" data-name="Tariqul Islam" data-role="Admin">Admin</button>
+          <button type="button" class="preset-chip persona-chip" data-email="karim.agent@upay.bd" data-name="Karim Ahmed" data-role="Agent">Agent Cashier</button>
+        </div>
       </div>
 
       <!-- Google Sign In Button -->
@@ -153,8 +170,9 @@
             <input type="checkbox" id="remember-me" class="remember-checkbox" checked>
             <span>Remember me</span>
           </label>
-          <a href="#" class="forgot-password-link" onclick="event.preventDefault(); alert('Password reset link sent to registered email.');">Forgot password?</a>
+          <a href="#" class="forgot-password-link" onclick="event.preventDefault(); document.getElementById('login-feedback-msg').innerText = 'Password reset dispatch sent to registered email.'; document.getElementById('login-feedback-msg').style.display='block';">Forgot password?</a>
         </div>
+        <div id="login-feedback-msg" style="display:none; color:var(--upay-emerald); font-size:0.8rem; margin:6px 0; text-align:center;"></div>
 
         <!-- Submit Button with Shimmer Sweep and ArrowRight Icon -->
         <button type="submit" class="btn-submit-signin" id="btn-submit-signin">

@@ -41,6 +41,11 @@ class TransferCreateRequest(BaseModel):
     goals: Optional[List[PlanGoal]] = None
     simulate_anomaly: Optional[bool] = False
 
+class RiskFactor(BaseModel):
+    name: str
+    contribution_pct: float
+    impact: Optional[str] = "elevates_risk"
+
 class TransferResponse(BaseModel):
     transfer_id: str
     status: str
@@ -49,6 +54,11 @@ class TransferResponse(BaseModel):
     message: str
     amount_bdt: Optional[float] = None
     fee_bdt: Optional[float] = None
+    factors: Optional[List[RiskFactor]] = []
+    prediction_set: Optional[List[str]] = []
+    is_doubt: Optional[bool] = False
+    q_hat: Optional[float] = None
+    suggested_action: Optional[str] = "none"
 
 class RiskAlertDetailResponse(BaseModel):
     alert_id: str
@@ -60,6 +70,10 @@ class RiskAlertDetailResponse(BaseModel):
     suggested_action: str
     linked_wallets: List[str] = []
     model_version: str
+    factors: Optional[List[RiskFactor]] = []
+    prediction_set: Optional[List[str]] = []
+    is_doubt: Optional[bool] = False
+    q_hat: Optional[float] = None
 
 class AnalystDecisionRequest(BaseModel):
     decision: str  # 'approve', 'hold', 'escalate'
@@ -100,3 +114,63 @@ class FairnessMetricsResponse(BaseModel):
     overall_alert_rate_pct: float
     audited_at: str
     notes: str
+
+class PolicyWeights(BaseModel):
+    supervised_ml: float = 0.35
+    behavioral_anomaly: float = 0.20
+    velocity: float = 0.15
+    device: float = 0.15
+    graph_centrality: float = 0.10
+    scamshield_coercion: float = 0.05
+
+class PolicyThresholds(BaseModel):
+    review_threshold: float = 45.0
+    hold_threshold: float = 75.0
+    conformal_alpha: Optional[float] = 0.05
+    cooling_off_seconds: Optional[int] = 30
+
+class PolicyUpdateRequest(BaseModel):
+    preset: Optional[str] = None
+    weights: Optional[Dict[str, float]] = None
+    thresholds: Optional[Dict[str, float]] = None
+
+class PolicyResponse(BaseModel):
+    version: str
+    active_preset: str
+    updated_at: str
+    updated_by: str
+    weights: Dict[str, float]
+    thresholds: Dict[str, float]
+    presets: Dict[str, Any]
+
+class AgentStructuringMetric(BaseModel):
+    agent_id: str
+    district: str
+    total_transfers_30d: int
+    total_volume_bdt: float
+    volume_zscore: float
+    near_threshold_count: int
+    near_threshold_share_pct: float
+    night_count: int
+    night_share_pct: float
+    cashout_bdt: float
+    cashin_bdt: float
+    cashout_ratio: float
+    risk_level: str
+    structuring_flags: List[str]
+
+class AgentStructuringResponse(BaseModel):
+    agents: List[AgentStructuringMetric]
+    flagged_agent_count: int
+    high_risk_count: int
+    audited_at: str
+
+class AnalystKPIResponse(BaseModel):
+    open_today: int
+    closed_today: int
+    avg_review_time_seconds: float
+    false_positive_trend: Dict[str, float]
+    top_5_risky_corridors: List[Dict[str, Any]]
+    fraud_caught_vs_missed: Dict[str, int]
+    generated_at: str
+

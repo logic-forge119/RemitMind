@@ -13,7 +13,7 @@ def generate_analyst_explanation(data: dict) -> dict:
     """
     reasons = data.get("reason_codes", [])
     amount_src = data.get("amount_src", 0.0)
-    score = data.get("score", 0.0)
+    score = data.get("score", data.get("risk_score", 0.0))
     velocity = data.get("velocity", 1)
 
     what_happened_parts = []

@@ -15,7 +15,9 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./remitmind.db")
     LLM_API_KEY: str = os.getenv("LLM_API_KEY", "mock-llm-key")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-1.5-flash")
-    ANALYST_API_KEY: str = os.getenv("ANALYST_API_KEY", "upay-risk-secret")
+    ANALYST_API_KEY: str = os.getenv("ANALYST_API_KEY", "")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "remitmind-auth-token-secret-key-2026")
+    DEV_AUTH_ENABLED: bool = os.getenv("DEV_AUTH_ENABLED", "true").lower() in ("true", "1")
     RISK_REVIEW_THRESHOLD: float = float(os.getenv("RISK_REVIEW_THRESHOLD", "40.0"))
     RISK_HIGH_THRESHOLD: float = float(os.getenv("RISK_HIGH_THRESHOLD", "70.0"))
     ALLOWED_ORIGINS: list[str] = [

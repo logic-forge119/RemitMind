@@ -1,0 +1,87 @@
+version: 1.0.0
+active_preset: standard
+updated_at: '2026-10-07T03:49:40.553679+00:00'
+updated_by: u_admin_root
+weights:
+  supervised_ml: 0.35
+  behavioral_anomaly: 0.2
+  velocity: 0.15
+  device: 0.15
+  graph_centrality: 0.1
+  scamshield_coercion: 0.05
+thresholds:
+  review_threshold: 45.0
+  hold_threshold: 75.0
+  conformal_alpha: 0.05
+  cooling_off_seconds: 30
+presets:
+  standard:
+    name: Standard Balanced Guard
+    description: Default calibrated baseline across all remittance corridors and regular
+      daytime activity.
+    weights:
+      supervised_ml: 0.35
+      behavioral_anomaly: 0.2
+      velocity: 0.15
+      device: 0.15
+      graph_centrality: 0.1
+      scamshield_coercion: 0.05
+    thresholds:
+      review_threshold: 45.0
+      hold_threshold: 75.0
+  nocturnal_guard:
+    name: Nocturnal Guard (00:00 - 06:00 BST)
+    description: Heightened sensitivity for off-hours predawn transactions, device
+      rotations, and rapid velocity.
+    weights:
+      supervised_ml: 0.25
+      behavioral_anomaly: 0.15
+      velocity: 0.25
+      device: 0.25
+      graph_centrality: 0.05
+      scamshield_coercion: 0.05
+    thresholds:
+      review_threshold: 35.0
+      hold_threshold: 65.0
+  mule_syndicate_strike:
+    name: Mule Syndicate Strike
+    description: Prioritizes community clustering, PageRank centrality, and multi-hop
+      aggregator fan-in detection.
+    weights:
+      supervised_ml: 0.2
+      behavioral_anomaly: 0.05
+      velocity: 0.25
+      device: 0.1
+      graph_centrality: 0.35
+      scamshield_coercion: 0.05
+    thresholds:
+      review_threshold: 40.0
+      hold_threshold: 70.0
+  consumer_scam_alert:
+    name: Consumer Scam Alert
+    description: Targeted protection against advance-fee lottery traps, hospital emergencies,
+      and regulator impersonation.
+    weights:
+      supervised_ml: 0.25
+      behavioral_anomaly: 0.2
+      velocity: 0.05
+      device: 0.1
+      graph_centrality: 0.1
+      scamshield_coercion: 0.3
+    thresholds:
+      review_threshold: 35.0
+      hold_threshold: 65.0
+  disaster_relief:
+    name: Disaster Relief Operational Mode
+    description: Relaxed velocity ceilings and heightened false-positive suppression
+      during flood and cyclone emergencies.
+    weights:
+      supervised_ml: 0.4
+      behavioral_anomaly: 0.1
+      velocity: 0.1
+      device: 0.1
+      graph_centrality: 0.15
+      scamshield_coercion: 0.15
+    thresholds:
+      review_threshold: 55.0
+      hold_threshold: 85.0

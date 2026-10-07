@@ -79,8 +79,9 @@ def test_create_transfer_anomaly():
     assert len(data["reason_codes"]) > 0
 
 def test_analyst_alerts_and_decision():
+    headers = {"X-API-Key": "dev-analyst"}
     # 1. Fetch alerts
-    res = client.get("/api/v1/analyst/alerts?status=open")
+    res = client.get("/api/v1/analyst/alerts?status=open", headers=headers)
     assert res.status_code == 200
     alerts = res.json()
     assert isinstance(alerts, list)
@@ -88,7 +89,7 @@ def test_analyst_alerts_and_decision():
     if len(alerts) > 0:
         alert_id = alerts[0]["alert_id"]
         # 2. Get detail
-        res_det = client.get(f"/api/v1/analyst/alerts/{alert_id}")
+        res_det = client.get(f"/api/v1/analyst/alerts/{alert_id}", headers=headers)
         assert res_det.status_code == 200
         det = res_det.json()
         assert det["alert_id"] == alert_id
@@ -100,7 +101,7 @@ def test_analyst_alerts_and_decision():
             "note": "Verified legit family remittance",
             "is_fraud": False
         }
-        res_dec = client.post(f"/api/v1/analyst/alerts/{alert_id}/decision", json=dec_payload)
+        res_dec = client.post(f"/api/v1/analyst/alerts/{alert_id}/decision", json=dec_payload, headers=headers)
         assert res_dec.status_code == 200
         dec_data = res_dec.json()
         assert dec_data["status"] == "closed"
@@ -208,4 +209,75 @@ def test_ai_endpoints():
     liq_data = res_liq.json()
     assert liq_data["deficit"] == 170000.0
     assert "advice_plan" in liq_data
+
+def test_readiness_probe():
+    res = client.get("/health/ready")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"
+    assert "users_count" in data
+
+def test_transfer_corridor_and_amount_limits():
+    # 1. Invalid corridor
+    res_bad_corridor = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "INVALID_CORRIDOR",
+        "amount_src": 500.0
+    })
+    assert res_bad_corridor.status_code == 422
+
+    # 2. Amount below minimum
+    res_too_low = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "AED_BDT",
+        "amount_src": 5.0
+    })
+    assert res_too_low.status_code == 422
+
+    # 3. Amount above maximum
+    res_too_high = client.post("/api/v1/transfers", json={
+        "sender_id": "u_send_001",
+        "receiver_id": "u_recv_001",
+        "corridor": "AED_BDT",
+        "amount_src": 999999.0
+    })
+    assert res_too_high.status_code == 422
+
+def test_analyst_key_security():
+    # Invalid key must be rejected with 401
+    res = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "wrong-secret-key"})
+    assert res.status_code == 401
+
+    # Dev token header must succeed
+    res_dev = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "dev-analyst"})
+    assert res_dev.status_code == 200
+
+    # JWT Bearer token must succeed for analyst
+    token_res = client.post("/api/v1/auth/dev-token", json={"role": "analyst", "user_id": "u_test_analyst"})
+    assert token_res.status_code == 200
+    token = token_res.json()["access_token"]
+    res_jwt = client.get("/api/v1/analyst/alerts", headers={"Authorization": f"Bearer {token}"})
+    assert res_jwt.status_code == 200
+
+    # Sender role must be rejected with 403 Forbidden
+    sender_token_res = client.post("/api/v1/auth/dev-token", json={"role": "sender", "user_id": "u_test_sender"})
+    assert sender_token_res.status_code == 200
+    sender_token = sender_token_res.json()["access_token"]
+    res_forbidden = client.get("/api/v1/analyst/alerts", headers={"Authorization": f"Bearer {sender_token}"})
+    assert res_forbidden.status_code == 403
+
+def test_docs_hub():
+    res_list = client.get("/api/v1/docs")
+    assert res_list.status_code == 200
+    docs = res_list.json()["documents"]
+    assert len(docs) >= 5
+
+    res_prd = client.get("/api/v1/docs/prd")
+    assert res_prd.status_code == 200
+    assert "PRD" in res_prd.json()["title"]
+    assert len(res_prd.json()["content"]) > 100
+
 
