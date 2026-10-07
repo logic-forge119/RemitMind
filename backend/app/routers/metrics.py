@@ -146,3 +146,21 @@ def get_demographic_parity(db: Session = Depends(get_db)):
         "compliance_standard": "EEOC 4/5ths Rule (80% Disparate Impact Threshold)",
         "audited_at": datetime.now().isoformat()
     }
+
+@router.get("/roi")
+def get_replay_roi():
+    """
+    Returns empirical backtest replay metrics comparing Rule Baseline vs RemitMind
+    on the held-out PaySim temporal test split.
+    """
+    import json
+    from pathlib import Path
+    artifact_path = Path(__file__).resolve().parent.parent / "ml" / "artifacts" / "replay_results.json"
+    if artifact_path.exists():
+        with open(artifact_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {
+        "status": "pending_benchmark",
+        "detail": "Run `python scripts/replay_experiment.py` to generate held-out replay metrics."
+    }
+

@@ -1,0 +1,48 @@
+{
+  "dataset": "PaySim Mobile-Money Benchmark",
+  "evaluation_period": "Held-Out Test Partition (Steps 633 to 744)",
+  "total_screened_transactions": 3794,
+  "total_fraud_incidents": 35,
+  "total_fraud_loss_at_risk_bdt": 28898635.75,
+  "total_fraud_loss_at_risk_usd": 240821.96,
+  "economic_assumptions": {
+    "analyst_hourly_wage_usd": 15.0,
+    "analyst_hourly_wage_bdt": 1800.0,
+    "minutes_per_alert_review": 3.0,
+    "cost_per_alert_bdt": 90.0
+  },
+  "rule_baseline": {
+    "fraud_caught_count": 35,
+    "fraud_caught_pct": 100.0,
+    "fraud_prevented_bdt": 28898635.75,
+    "fraud_prevented_usd": 240821.96,
+    "total_alerts": 286,
+    "false_alerts": 251,
+    "false_alert_rate_per_1k": 66.16,
+    "analyst_review_hours": 14.3,
+    "analyst_labor_cost_bdt": 25740.0,
+    "net_roi_bdt": 28872895.75,
+    "net_roi_usd": 240607.46
+  },
+  "remitmind_hybrid": {
+    "fraud_caught_count": 35,
+    "fraud_caught_pct": 100.0,
+    "fraud_prevented_bdt": 28898635.75,
+    "fraud_prevented_usd": 240821.96,
+    "total_alerts": 35,
+    "false_alerts": 0,
+    "false_alert_rate_per_1k": 0.0,
+    "analyst_review_hours": 1.75,
+    "analyst_labor_cost_bdt": 3150.0,
+    "net_roi_bdt": 28895485.75,
+    "net_roi_usd": 240795.71
+  },
+  "improvements": {
+    "alert_reduction_pct": 87.76,
+    "analyst_hours_saved": 12.55,
+    "analyst_hours_saved_per_10k": 33.08,
+    "net_financial_gain_bdt": 22590.0,
+    "net_financial_gain_usd": 188.25
+  },
+  "measured_at": "2026-10-07T05:18:31.041754+00:00"
+}

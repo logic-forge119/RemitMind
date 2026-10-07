@@ -8,14 +8,42 @@ from app.schemas import TransferCreateRequest, TransferResponse
 from app.services.rules import calculate_fees_and_payout, CORRIDOR_RULES
 from app.services.risk import anomaly_scorer
 from app.services.explain import generate_analyst_explanation
+from app.services.features import extract_transfer_features
 from app.limiter import limiter
 from app.routers.websocket import alert_manager
+
+from typing import Optional
+from app.auth import get_current_user, get_optional_user
+from app.config import settings
 
 router = APIRouter(prefix="/api/v1/transfers", tags=["Transfers"])
 
 @router.post("", response_model=TransferResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/minute")
-def create_transfer(request: Request, payload: TransferCreateRequest, db: Session = Depends(get_db)):
+def create_transfer(
+    request: Request,
+    payload: TransferCreateRequest,
+    current_user: Optional[dict] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    # Mandatory Auth in production; role and identity binding
+    is_prod = getattr(settings, "APP_ENV", "development").lower() == "production"
+    if is_prod and not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is mandatory on financial endpoints in production mode."
+        )
+
+    if current_user and current_user.get("role") not in ("analyst", "admin") and not current_user.get("sub", "").startswith("dev_"):
+        if payload.sender_id != current_user.get("sub"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "ownership_violation",
+                    "detail": f"Forbidden: Sender ID '{payload.sender_id}' does not match authenticated user '{current_user.get('sub')}'."
+                }
+            )
+
     # 0. Validate Corridor & Business Limits
     corridor_key = payload.corridor.upper()
     if corridor_key not in CORRIDOR_RULES:
@@ -35,14 +63,36 @@ def create_transfer(request: Request, payload: TransferCreateRequest, db: Sessio
     # 1. Calculate BDT settlement and fees
     pricing = calculate_fees_and_payout(payload.corridor, payload.amount_src)
 
-    # 2. Check risk scoring
+    # 2. Extract dynamic behavioral features from database ledger
+    features = extract_transfer_features(
+        db=db,
+        sender_id=payload.sender_id,
+        receiver_id=payload.receiver_id,
+        amount_src=payload.amount_src,
+        device_id=payload.device_id,
+        corridor=payload.corridor
+    )
+
+    # 3. Check risk scoring with genuine observable features (Zero simulate_anomaly shortcuts)
     risk_result = anomaly_scorer.score_transfer(
         amount_src=payload.amount_src,
-        is_new_receiver=payload.simulate_anomaly or (payload.amount_src >= 5000),
-        is_new_device=payload.simulate_anomaly,
-        velocity_1h=3 if payload.simulate_anomaly else 1,
-        corridor=payload.corridor,
-        simulate_anomaly=payload.simulate_anomaly
+        sender_avg=features["sender_avg"],
+        sender_std=features["sender_std"],
+        velocity_1h=features["velocity_1h"],
+        frequency_7d=features["frequency_7d"],
+        frequency_30d=features["frequency_30d"],
+        time_since_last_txn_hours=features["time_since_last_txn_hours"],
+        day_of_week_dev=features["day_of_week_dev"],
+        is_dormant_reactivation=features["is_dormant_reactivation"],
+        device_age_days=features["device_age_days"],
+        accounts_per_device=features["accounts_per_device"],
+        sim_swap_recent=features["sim_swap_recent"],
+        country_jump=features["country_jump"],
+        is_new_receiver=features["is_new_receiver"],
+        is_new_device=features["is_new_device"],
+        hour_of_day=features["hour_of_day"],
+        distinct_senders_24h=features["distinct_senders_24h"],
+        corridor=payload.corridor
     )
 
     transfer_id = f"t_{uuid.uuid4().hex[:8]}"
@@ -71,7 +121,7 @@ def create_transfer(request: Request, payload: TransferCreateRequest, db: Sessio
             "reason_codes": risk_result["reason_codes"],
             "amount_src": payload.amount_src,
             "score": risk_result["score"],
-            "velocity": 3 if payload.simulate_anomaly else 1,
+            "velocity": features["velocity_1h"],
             "suggested_action": risk_result["suggested_action"]
         })
         
@@ -123,8 +173,22 @@ def create_transfer(request: Request, payload: TransferCreateRequest, db: Sessio
     }
 
 @router.get("")
-def list_transfers(limit: int = 50, db: Session = Depends(get_db)):
-    rows = db.query(Transfer).order_by(Transfer.created_at.desc()).limit(limit).all()
+def list_transfers(
+    limit: int = 50,
+    current_user: Optional[dict] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    is_prod = getattr(settings, "APP_ENV", "development").lower() == "production"
+    if is_prod and not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+
+    query = db.query(Transfer)
+    if current_user and current_user.get("role") not in ("analyst", "admin"):
+        # Enforce user ownership: users can only view their own transactions
+        sub = current_user.get("sub", "")
+        query = query.filter((Transfer.sender_id == sub) | (Transfer.receiver_id == sub))
+
+    rows = query.order_by(Transfer.created_at.desc()).limit(limit).all()
     return [
         {
             "id": r.id,
@@ -142,10 +206,30 @@ def list_transfers(limit: int = 50, db: Session = Depends(get_db)):
     ]
 
 @router.get("/{id}")
-def get_transfer(id: str, db: Session = Depends(get_db)):
+def get_transfer(
+    id: str,
+    current_user: Optional[dict] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
     trx = db.query(Transfer).filter(Transfer.id == id).first()
     if not trx:
         raise HTTPException(status_code=404, detail="Transfer not found")
+
+    is_prod = getattr(settings, "APP_ENV", "development").lower() == "production"
+    if is_prod and not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+
+    if current_user and current_user.get("role") not in ("analyst", "admin"):
+        sub = current_user.get("sub", "")
+        if trx.sender_id != sub and trx.receiver_id != sub:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "ownership_violation",
+                    "detail": "Forbidden: You can only access your own transfer records."
+                }
+            )
+
     return {
         "id": trx.id,
         "sender_id": trx.sender_id,

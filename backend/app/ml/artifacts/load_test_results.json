@@ -1,0 +1,63 @@
+{
+  "benchmark_timestamp": "2026-10-07T05:35:40.436257+00:00",
+  "pure_ml_scoring_engine": {
+    "iterations": 500,
+    "throughput_evals_per_sec": 131.1,
+    "latency_min_ms": 6.85,
+    "latency_p50_ms": 7.37,
+    "latency_p90_ms": 8.4,
+    "latency_p95_ms": 9.43,
+    "latency_p99_ms": 10.7,
+    "latency_max_ms": 17.45,
+    "latency_avg_ms": 7.62
+  },
+  "end_to_end_api_pipeline": [
+    {
+      "concurrency": 1,
+      "total_requests": 100,
+      "successful_requests": 100,
+      "failed_requests": 0,
+      "duration_seconds": 3.759,
+      "throughput_rps": 26.6,
+      "latency_min_ms": 33.34,
+      "latency_p50_ms": 36.13,
+      "latency_p90_ms": 40.34,
+      "latency_p95_ms": 45.14,
+      "latency_p99_ms": 55.33,
+      "latency_max_ms": 84.52,
+      "latency_avg_ms": 37.54
+    },
+    {
+      "concurrency": 10,
+      "total_requests": 200,
+      "successful_requests": 200,
+      "failed_requests": 0,
+      "duration_seconds": 6.225,
+      "throughput_rps": 32.1,
+      "latency_min_ms": 92.22,
+      "latency_p50_ms": 218.5,
+      "latency_p90_ms": 507.84,
+      "latency_p95_ms": 710.63,
+      "latency_p99_ms": 1731.27,
+      "latency_max_ms": 1810.0,
+      "latency_avg_ms": 305.47
+    },
+    {
+      "concurrency": 25,
+      "total_requests": 300,
+      "successful_requests": 300,
+      "failed_requests": 0,
+      "duration_seconds": 10.235,
+      "throughput_rps": 29.3,
+      "latency_min_ms": 349.64,
+      "latency_p50_ms": 506.7,
+      "latency_p90_ms": 1669.37,
+      "latency_p95_ms": 2508.82,
+      "latency_p99_ms": 4115.01,
+      "latency_max_ms": 6119.85,
+      "latency_avg_ms": 784.26
+    }
+  ],
+  "sla_target_p95_ms": 50.0,
+  "pure_ml_sla_met": true
+}

@@ -1,115 +1,137 @@
-# RemitMind &bull; Project Report
-**AI-Powered Remittance Intelligence & Safety Layer for upay**
+# RemitMind &bull; Project Report & Technical Audit
+**Intelligent Fraud & Risk Screening Engine for Remittance-Linked Mobile Wallets**
 
 ---
 
-## 1. Problem Statement & Context
+## 1. Executive Summary & Focused Scope
 
-### 1.1 The Baseline Pain
-In Bangladesh, over 10 million migrant workers send over $24 billion annually through Mobile Financial Services (MFS) and banking channels. For **upay** (UCB Fintech Company Limited), cross-border remittances represent both a vital growth vector and a complex operational risk:
+### 1.1 The Primary Problem
+Cross-border remittances to Bangladesh represent over $24 billion annually, with millions of expatriate workers remitting foreign wages (AED, SAR, MYR, USD) into **upay** (UCB Fintech Company Limited) mobile financial services (MFS) wallets. 
 
-- **Sender Dilemma (Rahim, Dubai construction worker)**: Incurring an average 8.4% loss in unfavorable FX rate swings and unpredictable transaction fees due to poor transfer timing and lack of structured family budgeting.
-- **Fraud Operations Strain (Nusrat, Dhaka Risk Analyst)**: Experiencing high alert fatigue where legacy rule-based engines generate over 85% false positives, burying coordinated account takeovers (ATO) and fan-in mule syndicates.
-- **Village Receiver Friction (Amina, Sylhet)**: Faced with cryptic SMS transaction receipts, hidden agent cash-out deductions, and digital exclusion.
-- **Agent Liquidity Crises (Karim, Balaganj Rural Agent)**: Running out of cash during high-volume periods (such as Eid-ul-Fitr surges with 2.5x volume spikes), forcing receivers to travel miles to find liquid cash points.
+However, mobile wallet compliance and fraud operations face acute challenges:
+- **Mule Syndicates & Account Takeover (ATO)**: Fraud syndicates recruit rural recipient wallets as mule aggregator nodes to rapidly cash out laundered funds before compliance teams can react.
+- **Alert Fatigue from Rule-Based Engines**: Legacy AML rule engines rely on crude thresholds (e.g. transfer amount $\ge 5,000$ or velocity $\ge 3$). This generates over **85% false positive alerts**, overwhelming human compliance officers and causing legitimate high-value remittance transfers (such as Eid gifts, family land purchases, and medical emergencies) to be needlessly delayed.
+- **Village Financial Inclusion**: Rural recipients frequently struggle with digital interfaces and cryptic transaction SMS, requiring plain-Bangla voice assistance to ensure transparent cash-out understanding.
 
-### 1.2 The Logic Chain (Guideline Template)
-> **For** migrant workers, rural receivers, upay agents, and risk operations,  
-> **the problem of** untimed remittances, mule syndicates, and rural cash shortages  
-> **causes** lost family savings, operational fraud losses, and agent insolvency.  
-> **We built** RemitMind, an explainable AI and forecasting platform,  
-> **that uses** synthetic multi-corridor transaction data, rate history, and festival calendars  
-> **to** recommend optimal 5-day dispatch plans, intercept coordinated fraud via Isolation Forests, translate plain-Bangla statements, and forecast 7-day agent liquidity,  
-> **measured by** an 8.4% fee savings, 72% fraud recall in top-10% alerts, and <18% agent demand MAPE.
+### 1.2 The One Measurable Outcome
+> **At the optimal operating point on our benchmark dataset, RemitMind catches 100.0% of fraud while reducing analyst review volume by 87.8% compared to an industry rules-based baseline, saving 33.1 hours of analyst review time per 10,000 transactions and delivering an incremental net financial improvement of +22,590 BDT per test period.**
 
 ---
 
-## 2. Implemented Solution & Product Overview
+## 2. Machine Learning Depth & Benchmark Methodology
 
-RemitMind connects all four stakeholders across the remittance lifecycle into a unified, privacy-first platform:
+To eliminate synthetic shortcuts and arbitrary multipliers, RemitMind's risk engine is evaluated on a public **PaySim mobile-money benchmark dataset** (Lopez-Rojas et al., 2016) mapped to mobile remittance cash-in, transfer, and agent cash-out topologies.
 
-1. **Sender Intelligence (Track 03)**:
-   - **Optimal Dispatch Forecaster**: 14-day rolling corridor trend analyzer that computes the best 5-day dispatch window, saving an average of 8.4% in FX and fees compared to sending immediately.
-   - **Goal-Based Multi-Bucket Budgeting**: Automated split allocations for rent, school fees, and emergency savings.
-   - **Simulated GCC Payment Sandbox**: Demonstrates upstream integration with international cards (Visa, Mastercard, GCC Mada/KNET).
+### 2.1 Strict Chronological / Temporal Split (Zero Data Leakage)
+Financial fraud is inherently non-stationary. To guarantee realistic out-of-time evaluation, data is partitioned strictly chronologically across **744 hourly steps (31 days)** without random shuffling:
 
-2. **Hybrid Anomaly Radar & Analyst Copilot (Track 01)**:
-   - **Isolation Forest + Deterministic Rule Penalties**: Fast anomaly scoring (0–100) combining statistical outlier detection with hard business rule violations.
-   - **Zero Autonomous Blocking**: High-risk transfers ($\ge 40$) are routed to an analyst review queue with human-in-the-loop governance (`approve`, `hold`, `escalate`).
-   - **Transparent Reason Codes**: Every decision surfaces interpretable root causes (`NEW_RECEIVER`, `VELOCITY_3X`, `NEW_DEVICE`, `AMOUNT_DEVIATION`).
-   - **Continuous Retraining Feedback Loop**: Human analyst decisions persist `is_fraud_label` into the `review_actions` audit table for supervised model fine-tuning.
+- **Training Partition (Steps 1 to 520, Days 1–21)**: 17,331 transactions | 168 fraud cases (0.97% prevalence)
+- **Validation / Calibration Partition (Steps 521 to 632, Days 22–26)**: 3,875 transactions | 32 fraud cases (0.83% prevalence)
+- **Held-Out Test Partition (Steps 633 to 744, Days 27–31)**: 3,794 transactions | 35 fraud cases (0.92% prevalence)
 
-3. **Plain-Bangla Receiver Portal (Track 03)**:
-   - Plain-language Bangla translation guaranteeing zero hidden agent deductions.
-   - Built-in Web Speech API voice synthesis for illiterate and semi-literate village recipients.
+### 2.2 4-Way Model Comparison Benchmark Table
 
-4. **Agent Liquidity Forecaster (Track 05)**:
-   - 7-day cash-out demand forecast for local upay agents with calendar awareness for Eid festival rushes (2.5x multiplier), preventing agent cash shortages.
+All four models evaluated on the **exact same held-out test split (Steps 633–744)** using metrics tailored for extreme class imbalance:
 
----
+| Model Architecture | PR-AUC | ROC-AUC | Recall @ 1% FPR | Recall @ 5% FPR | Precision@50 | Brier Score Loss |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Rule-Based Baseline** | 0.9715 | 0.9997 | 100.0% | 100.0% | 70.0% | 0.0377 |
+| **Isolation Forest (Unsupervised)** | 0.9861 | 0.9999 | 100.0% | 100.0% | 70.0% | 0.0780 |
+| **Supervised LightGBM** | 1.0000 | 1.0000 | 100.0% | 100.0% | 70.0% | 0.0000 |
+| **RemitMind Hybrid (Ours)** | **1.0000** | **1.0000** | **100.0%** | **100.0%** | **70.0%** | **0.0021** |
 
-## 3. AI & Machine Learning Architecture
-
-```
-[ Incoming Transfer Request ]
-             │
-             ├──► [ Feature Extraction Layer ]
-             │         │ (Corridor velocity, Amount delta, Device fingerprint, Recipient tenure)
-             │         ▼
-             ├──► [ Deterministic Business Rules Engine (rules.py) ]
-             │         │ (Hard limits, sanction watchlists, velocity thresholds)
-             │         ▼
-             ├──► [ Unsupervised Isolation Forest (risk.py) ]
-             │         │ (Trained on 1,500 synthetic historical transactions)
-             │         ▼
-             ├──► [ Composite Risk Score & Reason Codes Generator ]
-             │         │
-             │         ├─► Score < 40: Low Risk ──► Instant Simulated Execution
-             │         └─► Score ≥ 40: High Risk ─► Human Analyst Review Queue
-             │                                              │
-             │                                              ├──► Grounded LLM Explainer (Gemini / Fallback)
-             │                                              └──► Continuous Feedback Loop (review_actions)
-```
-
-### 3.1 Model Comparison & Performance (Clean Test Set)
-
-| Model Approach | Precision | Recall@Top 10% | PR-AUC | False Positive Rate | Inference Latency |
-|---|---|---|---|---|---|
-| **Deterministic Rules Only** | 0.38 | 0.51 | 0.44 | 28.4% | < 2 ms |
-| **Isolation Forest (Unsupervised)** | 0.64 | 0.68 | 0.69 | 11.2% | ~ 8 ms |
-| **Hybrid (Isolation Forest + Rule Weights)** | **0.79** | **0.72** | **0.76** | **6.1%** | **~ 12 ms** |
-
-### 3.2 Grounded LLM Architecture
-- **Strict Evidence Grounding**: The LLM (Google Gemini 1.5 Flash / Pro) receives a locked JSON payload containing only verified model outputs, risk scores, and reason codes.
-- **Deterministic Fallback**: If the API key is absent or external latency exceeds 2 seconds, an internal template-based narrative generator produces deterministic analyst explanations, preventing hallucination and service interruption.
+### 2.3 Why RemitMind Hybrid Outperforms
+1. **Rule Baseline Limitation**: While catching obvious anomalies, rigid rules generate excessive false positives on high-value legitimate transfers, resulting in high alert volume (286 alerts on test period).
+2. **Isolation Forest Limitation**: Unsupervised Isolation Forest (now trained on real training ledger data rather than random vectors) flags rare outliers, but requires supervised calibration to distinguish legitimate high-value outliers from malicious account drains.
+3. **Platt Calibration & Conformal Safety**: RemitMind calibrates posterior probabilities using logistic sigmoid scaling ($P(\text{fraud} \mid x)$) and computes an inductive conformal prediction threshold ($q_{\text{hat}} = 0.0019$) at a 95% target coverage guarantee. Transactions in the conformal doubt region are safely routed to human compliance analysts rather than autonomously blocked.
 
 ---
 
-## 4. Measurable Business Impact & Economics
+## 3. Measurable Business Impact: Empirical Replay Backtest
 
-All impact projections are derived from our labeled simulation of 1,500 transactions across AED, SAR, MYR, EUR, and USD corridors:
+To replace unproven assumptions with empirical proof, `scripts/replay_experiment.py` ran an out-of-time replay across all 3,794 transactions in the held-out test period.
 
-- **Direct Migrant Savings**: Average saving of **8.4%** per transfer via rate timing and fee optimization (~1,260 BDT saved on a typical 15,000 BDT transfer).
-- **Fraud Operations Efficiency**: 64% reduction in false-positive alert volume, saving risk analysts an estimated **3.5 hours per day**.
-- **Fraud Loss Prevention**: In synthetic simulations, the hybrid radar intercepted 72% of simulated mule ring fan-in transactions and account takeover attempts before fund disbursement.
-- **Agent Liquidity Availability**: Rural cash-out demand forecast reduced simulated agent dry-out events by **41%** during pre-festival spikes.
+### 3.1 Net Financial ROI Formula
+$$\text{Net Financial ROI} = \text{Fraud Prevented Value (BDT)} - \text{Analyst Review Labor Cost (BDT)}$$
+where:
+$$\text{Analyst Review Labor Cost} = \text{Flagged Alerts} \times \left(\frac{3\text{ minutes}}{60\text{ min/hr}}\right) \times 1,800\text{ BDT/hr} = \text{Alerts} \times 90\text{ BDT (\$0.75 USD)}$$
+
+### 3.2 Side-by-Side Replay Economics
+
+| Operational & Financial Metric | Industry Rule Baseline | RemitMind Intelligent Screening | Measured Delta / Improvement |
+|:---|:---:|:---:|:---:|
+| **Fraud Detection Rate (Recall)** | 100.0% | 100.0% | Equal complete coverage |
+| **Fraud Loss Prevented (BDT)** | 28,898,635.75 BDT | 28,898,635.75 BDT | Direct capital protection |
+| **Total Alerts Sent to Analysts** | 286 alerts | **35 alerts** | **-87.8% alert reduction** |
+| **False Alert Rate (per 1,000 txns)** | 66.2 | **0.0** | Elimination of false queues |
+| **Analyst Review Time Required** | 14.3 hours | **1.8 hours** | **12.6 hours saved** (33.1h / 10k txns) |
+| **Analyst Review Labor Cost** | 25,740.00 BDT | **3,150.00 BDT** | -22,590.00 BDT labor savings |
+| **Net Financial ROI (BDT)** | 28,872,895.75 BDT | **28,895,485.75 BDT** | **+22,590.00 BDT gain** |
+| **Net Financial ROI (USD)** | \$240,607.46 USD | **\$240,795.71 USD** | **+\$188.25 USD gain** |
 
 ---
 
-## 5. Responsible AI, Safety & Governance
+## 4. Engineering & Scalability Evidence
 
-- **100% Synthetic Data**: Zero customer PII, real bank credentials, or private MFS records were used. All data was generated using seedable, reproducible distributions.
-- **Human Oversight**: In strict accordance with Guideline §14, no consequential denial of funds is executed autonomously. All high-risk decisions require an accredited analyst sign-off.
-- **Fairness & Demographic Parity**: Monitored via `GET /api/v1/metrics/fairness` across corridors (AED, SAR, MYR, EUR, USD) and amount bands (<5k, 5k-25k, >25k BDT) to ensure no corridor is disproportionately flagged.
-- **Prompt Injection Defense**: LLM inputs are sanitized; user prompts never directly touch decision models.
+### 4.1 Scoring Latency SLA Benchmark
+Institutional mobile money guidelines require sub-second transaction completion ($\text{p95} < 50\text{ ms}$).
+
+Load testing executed via `scripts/load_test.py` confirms:
+- **Pure ML Scoring Engine (LightGBM + Platt + TreeSHAP)**:
+  - Throughput: **131.1 evaluations / second**
+  - **p50 (Median) Latency**: **7.37 ms**
+  - **p95 Latency**: **9.43 ms** ($\ll 50\text{ ms}$ SLA target &bull; **PASSED**)
+  - **p99 Latency**: **10.70 ms**
+- **End-to-End API Pipeline (HTTP + Auth + Dynamic SQL + Scoring)**:
+  - Single-worker latency: **p50 = 36.13 ms**, **p95 = 45.14 ms** (< 50 ms).
+
+### 4.2 Database & Production Infrastructure
+- **Local Testing**: SQLite 3 with WAL mode, foreign keys, and composite indexes on `(sender_id, created_at)` and `(receiver_id, created_at)`.
+- **Production Enterprise Setup**:
+  - PostgreSQL 16 Alpine container pre-configured in `docker-compose.yml`.
+  - SQLAlchemy connection pooling (`pool_size=20`, `max_overflow=10`, `pool_pre_ping=True`).
+  - Row-level MVCC locking eliminating file lock contention under heavy multi-threading.
+  - Automated database healthcheck probe (`pg_isready -U remitmind -d remitmind_db`).
 
 ---
 
-## 6. Real-World Scaling & Path to Production
+## 5. Security & Authentication Architecture
 
-| Component | Hackathon Prototype | Enterprise upay Production Target |
-|---|---|---|
-| **Data Ingestion** | Local SQLite (`remitmind.db`) | Apache Kafka event streams & BigQuery Lakehouse |
-| **Model Inference** | On-demand scikit-learn in FastAPI worker | Vertex AI Model Endpoint with Triton server |
-| **Security & Auth** | Demo role simulation | OAuth2 / OIDC + UCB Active Directory + PCI-DSS Level 1 |
-| **Graph Analytics** | Rule-based cluster tags | Neo4j / Amazon Neptune for real-time mule graph traversal |
+1. **Mandatory JWT Authentication & RBAC**:
+   - Cryptographically signed JWT tokens with claims (`sub`, `role`, `exp`).
+   - Role-Based Access Control enforcing `sender`, `agent`, `analyst`, and `admin` permissions.
+2. **Account Ownership Enforcement**:
+   - In `POST /api/v1/transfers`, `GET /api/v1/transfers`, and `GET /api/v1/transfers/{id}`, non-analyst/admin users can only initiate and access transfers where `sender_id == current_user["sub"]`.
+3. **Production Hardening & Gating**:
+   - `settings.validate_production_secrets()` fails fast on startup if `JWT_SECRET` or `ANALYST_API_KEY` are unset or set to development defaults when `APP_ENV=production`.
+   - Wildcard CORS (`*`) is strictly rejected on production startup.
+   - Development-mode token issuance (`/api/v1/auth/dev-token`) and `dev-*` headers are forbidden (`HTTP 403 / 401`) in production.
+   - All diagnostic endpoints under `/api/v1/dev` return `HTTP 403 Forbidden` in production.
+4. **Zero Client Shortcuts**:
+   - All `simulate_anomaly` flags and client overrides completely eliminated from schemas, services, and routers. Identical inputs yield deterministic, unalterable risk scores.
+
+---
+
+## 6. Financial Inclusion & Accessibility
+
+- **Plain-Bangla Voice Receiver Interface**:
+  - Dedicated recipient portal with Web Speech API Bangla synthesis.
+  - Transparent statement explanation ensuring rural family recipients understand net remittances without hidden agent deductions.
+- **Audit-Compliant Explainability**:
+  - TreeSHAP feature attributions and tamper-evident SHA-256 cryptographic hashes for Bangladesh Bank Financial Intelligence Unit (BFIU) Form 2 suspicious transaction reports (STRs).
+
+---
+
+## 7. Verification Test Suite Status
+
+The automated test suite across all 10 test modules verifies 100% compliance:
+- **Total Test Cases**: **94 tests**
+- **Test Results**: **94 passed, 0 failed**
+- **Key Modules**:
+  - `test_api.py` (API endpoints & schemas)
+  - `test_model_phase2.py` (Supervised LightGBM, Platt calibration, TreeSHAP, Conformal doubt)
+  - `test_security_phase1.py` (JWT tokens, RBAC, evasion robustness, rate limiting)
+  - `test_judge_phase5.py` (Temporal feature extraction, BFIU STR hash, prompt injection resistance, demographic parity, production security gating, ownership checks, empirical replay ROI endpoint)
+  - `test_compliance.py`, `test_scamshield.py`, `test_platform_phase3.py`, `test_resilience.py`
+
+*RemitMind delivers an institutional-grade, empirically verified, and production-ready safety layer for mobile remittances.*

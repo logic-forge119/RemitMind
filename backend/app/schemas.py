@@ -39,7 +39,6 @@ class TransferCreateRequest(BaseModel):
     channel: Optional[str] = "app"
     agent_id: Optional[str] = None
     goals: Optional[List[PlanGoal]] = None
-    simulate_anomaly: Optional[bool] = False
 
 class RiskFactor(BaseModel):
     name: str
@@ -101,6 +100,7 @@ class AgentForecastResponse(BaseModel):
     cash_on_hand_bdt: float
     top_up_needed_bdt: float
     festival_flag: bool
+    eid_multiplier_active: Optional[bool] = False
 
 class FairnessMetricItem(BaseModel):
     corridor: str

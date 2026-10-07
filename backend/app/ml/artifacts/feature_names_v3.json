@@ -1,0 +1,20 @@
+[
+  "amount_src",
+  "amount_bdt",
+  "amount_z",
+  "velocity_1h",
+  "frequency_7d",
+  "frequency_30d",
+  "time_since_last_txn_hours",
+  "day_of_week_dev",
+  "is_dormant_reactivation",
+  "device_age_days",
+  "accounts_per_device",
+  "sim_swap_recent",
+  "country_jump",
+  "is_new_receiver",
+  "hour_of_day",
+  "is_night",
+  "distinct_senders_to_receiver_24h",
+  "is_high_value_legitimate"
+]

@@ -1,47 +1,43 @@
 {
-  "model": "LightGBM + Platt Sigmoid Calibration",
-  "dataset_size": 10500,
-  "test_size": 1575,
-  "precision": 1.0,
-  "recall": 0.9935,
-  "f1_score": 0.9967,
+  "model": "LightGBM + Platt Sigmoid Calibration + Conformal Verification",
+  "precision": 0.7609,
+  "recall": 1.0,
+  "f1_score": 0.8642,
   "roc_auc": 1.0,
-  "raw_brier_score": 0.0001,
-  "calibrated_brier_score": 0.0006,
-  "brier_improvement_pct": -353.67,
-  "conformal_q_hat": 0.0519,
+  "pr_auc": 1.0,
+  "raw_brier_score": 0.0,
+  "calibrated_brier_score": 0.0021,
+  "conformal_q_hat": 0.0019,
   "conformal_target_coverage_pct": 95.0,
-  "conformal_empirical_coverage_pct": 98.54,
-  "conformal_doubt_rate_pct": 0.0,
-  "fpr_legitimate_high_val_pct": 0.0,
+  "conformal_empirical_coverage_pct": 96.71,
   "top_features_shap": [
     [
-      "time_since_last_txn_hours",
-      1.5939663372260264
-    ],
-    [
       "day_of_week_dev",
-      0.7633955123959753
+      0.2227
     ],
     [
-      "is_new_receiver",
-      0.28437087452362025
+      "accounts_per_device",
+      0.0336
     ],
     [
-      "device_age_days",
-      0.08203581321490631
+      "time_since_last_txn_hours",
+      0.0065
     ],
     [
       "amount_z",
-      0.041817652658063156
+      0.0001
+    ],
+    [
+      "sim_swap_recent",
+      0.0
     ],
     [
       "frequency_30d",
-      0.009402262681569878
+      0.0
     ],
     [
-      "distinct_senders_to_receiver_24h",
-      0.007591261008174113
+      "device_age_days",
+      0.0
     ]
   ]
 }

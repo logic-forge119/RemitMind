@@ -15,7 +15,6 @@ from pydantic import BaseModel
 from app.config import settings
 
 # JWT Configuration sourced from environment
-JWT_SECRET = os.getenv("JWT_SECRET", "remitmind-auth-token-secret-key-2026")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
@@ -42,12 +41,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         "iat": datetime.now(timezone.utc),
         "iss": "remitmind-auth-service"
     })
-    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    secret = getattr(settings, "JWT_SECRET", "dev-remitmind-jwt-secret-key-32-bytes")
+    return jwt.encode(to_encode, secret, algorithm=JWT_ALGORITHM)
 
 def decode_access_token(token: str) -> dict:
     """Decodes and validates signature and expiration of JWT."""
+    secret = getattr(settings, "JWT_SECRET", "dev-remitmind-jwt-secret-key-32-bytes")
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, secret, algorithms=[JWT_ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
@@ -97,8 +98,8 @@ def get_current_user(
             "auth_type": "api_key"
         }
 
-    # 3. Dev-mode bypass token issuer header support
-    dev_enabled = getattr(settings, "DEV_AUTH_ENABLED", True)
+    # 3. Dev-mode bypass token issuer header support (strictly disabled in production)
+    dev_enabled = getattr(settings, "DEV_AUTH_ENABLED", True) and getattr(settings, "APP_ENV", "development") != "production"
     if dev_enabled and x_api_key and x_api_key.startswith("dev-"):
         role = x_api_key.replace("dev-", "")
         if role in ALLOWED_ROLES:
@@ -165,7 +166,7 @@ def issue_dev_token(request: Request, req: DevTokenRequest):
     Development-only JWT token issuer behind env flag.
     Allows frontend and automated tests to retrieve verified roles without manual sign-in.
     """
-    dev_enabled = getattr(settings, "DEV_AUTH_ENABLED", True)
+    dev_enabled = getattr(settings, "DEV_AUTH_ENABLED", True) and getattr(settings, "APP_ENV", "development") != "production"
     if not dev_enabled:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
