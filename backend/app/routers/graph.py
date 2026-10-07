@@ -197,16 +197,43 @@ def get_node_forensic_profile(node_id: str, db: Session = Depends(get_db)):
     """
     user = db.query(User).filter(User.id == node_id).first()
     if not user:
-        # Check cloaked alias
+        # Check cloaked alias in User table
         for u in db.query(User).all():
             if cloak_node_id(u.id) == node_id:
                 user = u
                 break
 
-    if not user:
-        raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
+    real_id = None
+    role = "user"
+    country = "Unknown"
+    is_quarantined = False
+    quarantine_reason = ""
 
-    real_id = user.id
+    if user:
+        real_id = user.id
+        role = user.role
+        country = user.country
+        is_quarantined = bool(getattr(user, "is_quarantined", 0))
+        quarantine_reason = getattr(user, "quarantine_reason", "")
+    else:
+        # Check if node_id matches any sender_id or receiver_id directly or via cloak
+        direct_tx = db.query(Transfer).filter((Transfer.sender_id == node_id) | (Transfer.receiver_id == node_id)).first()
+        if direct_tx:
+            real_id = node_id
+        else:
+            senders = [r[0] for r in db.query(Transfer.sender_id).distinct().all() if r[0]]
+            receivers = [r[0] for r in db.query(Transfer.receiver_id).distinct().all() if r[0]]
+            all_ids = set(senders + receivers)
+            for uid in all_ids:
+                if cloak_node_id(uid) == node_id:
+                    real_id = uid
+                    break
+
+        if not real_id:
+            raise HTTPException(status_code=404, detail=f"Node {node_id} not found")
+
+        role = "sender" if db.query(Transfer).filter(Transfer.sender_id == real_id).first() else "receiver"
+
     sent = db.query(Transfer).filter(Transfer.sender_id == real_id).all()
     received = db.query(Transfer).filter(Transfer.receiver_id == real_id).all()
 
@@ -219,10 +246,10 @@ def get_node_forensic_profile(node_id: str, db: Session = Depends(get_db)):
     return {
         "node_id": cloak_node_id(real_id),
         "real_id": real_id,
-        "role": user.role,
-        "country": user.country,
-        "is_quarantined": bool(getattr(user, "is_quarantined", 0)),
-        "quarantine_reason": getattr(user, "quarantine_reason", ""),
+        "role": role,
+        "country": country,
+        "is_quarantined": is_quarantined,
+        "quarantine_reason": quarantine_reason,
         "total_sent_bdt": round(sum(t.amount_bdt for t in sent), 2),
         "total_received_bdt": round(sum(t.amount_bdt for t in received), 2),
         "sent_transfers_count": len(sent),

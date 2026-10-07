@@ -8,6 +8,7 @@ from app.schemas import TransferCreateRequest, TransferResponse
 from app.services.rules import calculate_fees_and_payout, CORRIDOR_RULES
 from app.services.risk import anomaly_scorer
 from app.services.explain import generate_analyst_explanation
+from app.services.features import extract_transfer_features
 from app.limiter import limiter
 from app.routers.websocket import alert_manager
 
@@ -35,14 +36,37 @@ def create_transfer(request: Request, payload: TransferCreateRequest, db: Sessio
     # 1. Calculate BDT settlement and fees
     pricing = calculate_fees_and_payout(payload.corridor, payload.amount_src)
 
-    # 2. Check risk scoring
+    # 2. Extract dynamic behavioral features from database ledger
+    features = extract_transfer_features(
+        db=db,
+        sender_id=payload.sender_id,
+        receiver_id=payload.receiver_id,
+        amount_src=payload.amount_src,
+        device_id=payload.device_id,
+        corridor=payload.corridor
+    )
+
+    # 3. Check risk scoring with dynamic features and optional simulated anomaly override
     risk_result = anomaly_scorer.score_transfer(
         amount_src=payload.amount_src,
-        is_new_receiver=payload.simulate_anomaly or (payload.amount_src >= 5000),
-        is_new_device=payload.simulate_anomaly,
-        velocity_1h=3 if payload.simulate_anomaly else 1,
+        sender_avg=features["sender_avg"],
+        sender_std=features["sender_std"],
+        velocity_1h=features["velocity_1h"],
+        frequency_7d=features["frequency_7d"],
+        frequency_30d=features["frequency_30d"],
+        time_since_last_txn_hours=features["time_since_last_txn_hours"],
+        day_of_week_dev=features["day_of_week_dev"],
+        is_dormant_reactivation=features["is_dormant_reactivation"],
+        device_age_days=features["device_age_days"],
+        accounts_per_device=features["accounts_per_device"],
+        sim_swap_recent=features["sim_swap_recent"],
+        country_jump=features["country_jump"],
+        is_new_receiver=features["is_new_receiver"] or (payload.amount_src >= 5000),
+        is_new_device=features["is_new_device"],
+        hour_of_day=features["hour_of_day"],
+        distinct_senders_24h=features["distinct_senders_24h"],
         corridor=payload.corridor,
-        simulate_anomaly=payload.simulate_anomaly
+        simulate_anomaly=bool(payload.simulate_anomaly)
     )
 
     transfer_id = f"t_{uuid.uuid4().hex[:8]}"
@@ -71,7 +95,7 @@ def create_transfer(request: Request, payload: TransferCreateRequest, db: Sessio
             "reason_codes": risk_result["reason_codes"],
             "amount_src": payload.amount_src,
             "score": risk_result["score"],
-            "velocity": 3 if payload.simulate_anomaly else 1,
+            "velocity": 3 if payload.simulate_anomaly else features["velocity_1h"],
             "suggested_action": risk_result["suggested_action"]
         })
         

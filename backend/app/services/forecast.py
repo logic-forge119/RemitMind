@@ -77,15 +77,16 @@ def forecast_send_plan(corridor: str, amount_src: float, goals: list = None) -> 
         "assumptions": ["Synthetic rate series with 14-day rolling linear trend", "Simulated interbank clearing window"]
     }
 
-def forecast_agent_demand(agent_id: str, cash_on_hand: float = 300000.0) -> dict:
+def forecast_agent_demand(agent_id: str, cash_on_hand: float = 300000.0, is_eid_surge: bool = False) -> dict:
     """
     7-day agent cash-out demand forecast incorporating festival multiplier (e.g. Eid 2.5x).
     """
     now = datetime.now()
     base_daily = 180000.0
     
-    # Day-by-day multipliers representing regular weekly rhythm leading into Eid spike on Day 4
-    multipliers = [1.0, 1.15, 1.45, 2.35, 2.15, 1.25, 0.90]
+    # Day-by-day multipliers representing regular weekly rhythm leading into Eid spike
+    surge_mult = 2.5 if is_eid_surge else 1.0
+    multipliers = [1.0 * surge_mult, 1.15 * surge_mult, 1.45 * surge_mult, 2.35 * surge_mult, 2.15 * surge_mult, 1.25 * surge_mult, 0.90 * surge_mult]
     
     days = []
     max_demand = 0.0
@@ -108,5 +109,6 @@ def forecast_agent_demand(agent_id: str, cash_on_hand: float = 300000.0) -> dict
         "days": days,
         "cash_on_hand_bdt": cash_on_hand,
         "top_up_needed_bdt": top_up_needed,
-        "festival_flag": festival_flag
+        "festival_flag": festival_flag,
+        "eid_multiplier_active": is_eid_surge
     }
