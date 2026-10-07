@@ -6,10 +6,10 @@
   <title>RemitMind Portal | International Remittance & AI Intelligence</title>
   <meta name="description" content="RemitMind production workspace for international remittance payment execution, real-time risk operations, village receiver budgeting, and agent liquidity forecasting.">
 
-  <!-- Google Fonts: Outfit & Inter & JetBrains Mono -->
+  <!-- Google Fonts: Hind Siliguri, Geist, Geist Mono, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -20,6 +20,10 @@
   <link rel="stylesheet" href="css/credit_card.css">
 </head>
 <body>
+
+  <!-- Accessibility Skip Links -->
+  <a href="#app-nav-bar" class="skip-link">Skip to navigation</a>
+  <a href="#view-pay" class="skip-link" style="left:180px;">Skip to main content</a>
 
   <!-- Ambient AI Glow Aura -->
   <div class="ai-ambient-glow" aria-hidden="true"></div>
@@ -35,14 +39,14 @@
               <img src="assets/remitmind-emblem.png" alt="RemitMind AI Logo" class="brand-logo-img">
             </div>
             <div class="logo-text-group">
-              <span class="logo-title">RemitMind <span style="font-size:0.72rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald-light); padding:2px 6px; border-radius:4px; font-weight:700;">AI</span></span>
+              <span class="logo-title">RemitMind <span style="font-size:0.72rem; background:rgba(16,185,129,0.2); color:var(--upay-emerald); padding:2px 6px; border-radius:4px; font-weight:700;">AI</span></span>
               <span class="logo-subtitle">For upay Bangladesh</span>
             </div>
           </a>
         </div>
 
         <!-- Navigation Tabs -->
-        <nav class="app-nav-tabs" id="app-nav-bar">
+        <nav class="app-nav-tabs" id="app-nav-bar" aria-label="Application Navigation">
           <button class="app-nav-tab active" data-view="pay">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span>Send Money</span>
@@ -76,6 +80,11 @@
           <button class="app-nav-tab" data-view="resilience">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             <span>Macro Resilience</span>
+          </button>
+
+          <button class="app-nav-tab" data-view="policy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Policy Engine</span>
           </button>
 
           <button class="app-nav-tab" data-view="simulator">
@@ -498,13 +507,56 @@
         <div class="view-title-bar">
           <div>
             <h2 class="view-heading">Risk Operations & Fraud Console</h2>
-            <p class="view-subheading">Ranked alert queue evaluated by Hybrid Isolation Forest. Zero auto-blocking: all flagged transfers require human decision.</p>
+            <p class="view-subheading">Ranked alert queue evaluated by LightGBM + Hybrid Isolation Forest. Zero auto-blocking: human oversight contract.</p>
           </div>
-          <div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="ws-live-badge" id="ws-status-badge">
+              <span class="pulse-dot"></span>
+              <span>Live WebSocket</span>
+            </span>
             <span class="ticker-badge" style="background:rgba(244,63,94,0.15); color:var(--accent-rose); font-size:0.85rem; padding:6px 14px;">
               Human Oversight Active
             </span>
           </div>
+        </div>
+
+        <!-- Analyst Telemetry KPI Strip -->
+        <div class="analyst-kpi-strip" id="analyst-kpi-strip">
+          <div class="analyst-kpi-tile">
+            <span class="kpi-tile-label">Open Today</span>
+            <span class="kpi-tile-value" id="kpi-open-today">14</span>
+            <span class="kpi-tile-subtext">Pending triage</span>
+          </div>
+          <div class="analyst-kpi-tile">
+            <span class="kpi-tile-label">Closed Today</span>
+            <span class="kpi-tile-value" id="kpi-closed-today">48</span>
+            <span class="kpi-tile-subtext">Decided by analysts</span>
+          </div>
+          <div class="analyst-kpi-tile">
+            <span class="kpi-tile-label">Avg Review Duration</span>
+            <span class="kpi-tile-value" id="kpi-avg-duration">38s</span>
+            <span class="kpi-tile-subtext">Target: &lt; 45s</span>
+          </div>
+          <div class="analyst-kpi-tile">
+            <span class="kpi-tile-label">FP Rate 7d / 30d</span>
+            <span class="kpi-tile-value" id="kpi-fp-rate">2.1% / 2.4%</span>
+            <span class="kpi-tile-subtext">Analyst release ratio</span>
+          </div>
+          <div class="analyst-kpi-tile">
+            <span class="kpi-tile-label">Elevated Corridors</span>
+            <span class="kpi-tile-value" id="kpi-risky-corridors">AED, MYR</span>
+            <span class="kpi-tile-subtext">Active elevated volume</span>
+          </div>
+        </div>
+
+        <!-- Keyboard Shortcuts Hint Strip -->
+        <div style="display:flex; gap:14px; align-items:center; margin-bottom:16px; font-size:0.75rem; color:var(--text-muted); flex-wrap:wrap;">
+          <span style="font-weight:700; color:var(--text-secondary);">Cockpit Hotkeys:</span>
+          <span><kbd>A</kbd> Approve Case</span>
+          <span><kbd>H</kbd> Hold for KYC</span>
+          <span><kbd>E</kbd> Escalate STR</span>
+          <span><kbd>J</kbd> / <kbd>K</kbd> Prev / Next Case</span>
+          <span><kbd>Esc</kbd> Close Drawer</span>
         </div>
 
         <!-- Adversarial Attack Simulation & Replay Deck -->
@@ -1134,10 +1186,150 @@
             <div id="sim3-feedback" style="display:none; margin-top:12px; padding:10px; border-radius:8px; font-size:0.8rem;"></div>
           </div>
         </div>
+      <!-- =====================================================================
+           VIEW 9: HOT-RELOADABLE POLICY ENGINE (SUPERVISOR / COMPLIANCE)
+           ===================================================================== -->
+      <section class="app-view" id="view-policy">
+        <div class="view-title-bar">
+          <div>
+            <h2 class="view-heading">Risk Policy Engine & Dynamic Weight Tuner</h2>
+            <p class="view-subheading">Hot-reloadable scoring parameters, conformal threshold tuning, and active threat defense presets.</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span class="ticker-badge" id="policy-version-badge" style="background:rgba(16,185,129,0.15); color:var(--upay-emerald); font-size:0.8rem;">Version 1.0</span>
+            <button class="btn btn-secondary btn-sm" onclick="resetPolicyDefaults()">Reset Defaults</button>
+            <button class="btn btn-primary btn-sm" id="btn-save-policy" onclick="savePolicyChanges()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Deploy Policy</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Operational Preset Chips -->
+        <div style="margin-bottom:20px;">
+          <label style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.05em; display:block; margin-bottom:8px;">
+            Operational Threat Presets:
+          </label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="preset-chip active" id="chip-preset-standard" onclick="applyPolicyPreset('standard')">Standard Production</button>
+            <button class="preset-chip" id="chip-preset-nocturnal" onclick="applyPolicyPreset('nocturnal')">Nocturnal Guard (00:00-06:00 BST)</button>
+            <button class="preset-chip" id="chip-preset-mule" onclick="applyPolicyPreset('mule_strike')">Mule Syndicate Strike</button>
+            <button class="preset-chip" id="chip-preset-scam" onclick="applyPolicyPreset('scam_surge')">Consumer Scam Alert</button>
+            <button class="preset-chip" id="chip-preset-disaster" onclick="applyPolicyPreset('disaster_relief')">Disaster Relief Priority</button>
+          </div>
+        </div>
+
+        <div class="policy-grid">
+          <!-- 6 Dimension Sliders -->
+          <div class="policy-slider-group">
+            <h3 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+              Component Scoring Weights (Sum to 1.00)
+            </h3>
+
+            <!-- 1. Supervised ML Weight -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>Supervised ML (LightGBM Calibrated)</span>
+                <span class="num-tabular" id="val-weight-supervised" style="color:var(--upay-emerald); font-weight:700;">0.35</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-supervised" min="0" max="1" step="0.05" value="0.35" oninput="updatePolicySlider('supervised', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">Trained on 10.5k synthetic corridor cases with Platt probability scaling.</div>
+            </div>
+
+            <!-- 2. Behavioral Anomaly (Isolation Forest) -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>Behavioral Anomaly (Isolation Forest)</span>
+                <span class="num-tabular" id="val-weight-anomaly" style="color:var(--upay-emerald); font-weight:700;">0.25</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-anomaly" min="0" max="1" step="0.05" value="0.25" oninput="updatePolicySlider('anomaly', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">Unsupervised outlier detection across velocity and historical corridor deviance.</div>
+            </div>
+
+            <!-- 3. Velocity Spike Weight -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>Velocity & Rapid Fan-in Multiplier</span>
+                <span class="num-tabular" id="val-weight-velocity" style="color:var(--upay-emerald); font-weight:700;">0.15</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-velocity" min="0" max="1" step="0.05" value="0.15" oninput="updatePolicySlider('velocity', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">Penalizes 3+ transfers in 1 hour or smurfing structured below 25k BDT.</div>
+            </div>
+
+            <!-- 4. Device & Geo Trust -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>Device Trust & Geolocation Distance</span>
+                <span class="num-tabular" id="val-weight-device" style="color:var(--upay-emerald); font-weight:700;">0.10</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-device" min="0" max="1" step="0.05" value="0.10" oninput="updatePolicySlider('device', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">Device fingerprint consistency, proxy detection, and foreign IP telemetry.</div>
+            </div>
+
+            <!-- 5. Graph Centrality (Syndicate) -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>Graph Centrality (PageRank Mule Ring)</span>
+                <span class="num-tabular" id="val-weight-centrality" style="color:var(--upay-emerald); font-weight:700;">0.10</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-centrality" min="0" max="1" step="0.05" value="0.10" oninput="updatePolicySlider('centrality', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">SyndicateRadar network topology and Louvain community proximity score.</div>
+            </div>
+
+            <!-- 6. ScamShield Coercion -->
+            <div class="slider-item">
+              <div class="slider-header">
+                <span>ScamShield Coercion & Social Engineering</span>
+                <span class="num-tabular" id="val-weight-scamshield" style="color:var(--upay-emerald); font-weight:700;">0.05</span>
+              </div>
+              <input type="range" class="slider-input" id="slider-weight-scamshield" min="0" max="1" step="0.05" value="0.05" oninput="updatePolicySlider('scamshield', this.value)">
+              <div style="font-size:0.72rem; color:var(--text-muted);">Bilingual prompt risk analysis for predatory caller phrases or lottery keywords.</div>
+            </div>
+          </div>
+
+          <!-- Policy Diff & Conformal Thresholds Card -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="card" style="padding:18px;">
+              <h3 style="font-size:0.92rem; font-weight:700; color:var(--text-primary); margin-bottom:12px;">Conformal Review Thresholds</h3>
+              
+              <div style="margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                  <span>Auto-Clear Threshold</span>
+                  <strong class="num-tabular" id="val-thresh-clear" style="color:var(--upay-emerald);">40.0</strong>
+                </div>
+                <input type="range" class="slider-input" id="slider-thresh-clear" min="10" max="60" value="40" oninput="document.getElementById('val-thresh-clear').innerText = this.value + '.0'; computePolicyDiff();">
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                  <span>Analyst Review Threshold</span>
+                  <strong class="num-tabular" id="val-thresh-review" style="color:var(--risk-review);">70.0</strong>
+                </div>
+                <input type="range" class="slider-input" id="slider-thresh-review" min="50" max="85" value="70" oninput="document.getElementById('val-thresh-review').innerText = this.value + '.0'; computePolicyDiff();">
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                  <span>Conformal Doubt Margin (&plusmn;)</span>
+                  <strong class="num-tabular" id="val-thresh-doubt" style="color:var(--accent-amber);">5.19%</strong>
+                </div>
+                <input type="range" class="slider-input" id="slider-thresh-doubt" min="1" max="15" step="0.1" value="5.19" oninput="document.getElementById('val-thresh-doubt').innerText = parseFloat(this.value).toFixed(2) + '%'; computePolicyDiff();">
+              </div>
+            </div>
+
+            <!-- Live Policy Diff Panel -->
+            <div class="card" style="padding:18px; flex-grow:1;">
+              <h3 style="font-size:0.92rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">Live Configuration Diff</h3>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">
+                Review parameter changes before hot-reloading into backend runtime.
+              </p>
+              <div class="policy-diff-card" id="policy-diff-summary">
+                <span style="color:var(--text-muted);">No unsaved modifications. Policy in sync with production config.</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
-
-
-
 
     </main>
   </div>
@@ -1193,6 +1385,88 @@
       <button class="copilot-send-btn" onclick="sendCopilotMsg()" title="Send Message">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       ANALYST SLIDE-OVER DETAIL DRAWER (DENSITY 7 COCKPIT MODE)
+       ========================================================================= -->
+  <div class="drawer-backdrop" id="analyst-drawer-backdrop" onclick="closeAnalystDrawer()"></div>
+  <aside class="slideover-drawer" id="analyst-drawer" aria-label="Analyst Investigation Drawer">
+    <div class="drawer-header">
+      <div>
+        <div style="font-weight:700; font-size:1.1rem; color:var(--text-primary);" id="drawer-case-ref">Case Investigation</div>
+        <div style="font-size:0.75rem; color:var(--text-secondary);" id="drawer-model-tag">LightGBM Calibrated &bull; TreeSHAP Grounded</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="badge-status in_review" id="drawer-status-badge">In Review</span>
+        <button onclick="closeAnalystDrawer()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.4rem; padding:4px 8px;" title="Close Drawer (Esc)">&times;</button>
+      </div>
+    </div>
+
+    <div class="drawer-body" id="drawer-body-content">
+      <!-- Populated dynamically via main_app.js -->
+      <div class="skeleton" style="height:120px; width:100%;"></div>
+      <div class="skeleton" style="height:200px; width:100%;"></div>
+    </div>
+
+    <div class="drawer-footer">
+      <div style="font-size:0.72rem; color:var(--text-muted);">
+        Hotkeys: <kbd>A</kbd> Approve &bull; <kbd>H</kbd> Hold &bull; <kbd>E</kbd> Escalate
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-approve btn-sm" id="drawer-btn-approve" onclick="handleDrawerAction('approve')">
+          <span>Approve (A)</span>
+        </button>
+        <button class="btn btn-hold btn-sm" id="drawer-btn-hold" onclick="handleDrawerAction('hold')">
+          <span>Hold (H)</span>
+        </button>
+        <button class="btn btn-escalate btn-sm" id="drawer-btn-escalate" onclick="handleDrawerAction('escalate')">
+          <span>STR Escalate (E)</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       FLOAT DISPATCH MODAL (MACRO RESILIENCE REBALANCING)
+       ========================================================================= -->
+  <div class="modal-backdrop" id="float-dispatch-modal">
+    <div class="modal-dialog" style="max-width:500px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-weight:700;">Emergency Float Dispatch</span>
+        </div>
+        <button onclick="document.getElementById('float-dispatch-modal').classList.remove('open')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.4rem;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:14px;">
+          Trigger real-time liquidity rebalancing from Central Treasury (Dhaka) to distressed division.
+        </p>
+        <div class="receipt-details-list">
+          <div class="receipt-row">
+            <span>Target Division</span>
+            <strong id="dispatch-target-division" style="color:var(--text-primary);">Sylhet Division</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Current Runway</span>
+            <strong id="dispatch-current-runway" style="color:var(--risk-critical);">7.2 Hours (Sub-12h Warning)</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Recommended Float Injection</span>
+            <strong id="dispatch-injection-amt" style="color:var(--upay-emerald);">BDT 15,000,000</strong>
+          </div>
+          <div class="receipt-row">
+            <span>Post-Injection Runway</span>
+            <strong style="color:var(--upay-emerald);">48.5 Hours (Stable)</strong>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn btn-secondary" style="flex:1;" onclick="document.getElementById('float-dispatch-modal').classList.remove('open')">Cancel</button>
+          <button class="btn btn-primary" style="flex:1;" id="btn-confirm-dispatch" onclick="confirmFloatDispatch()">Confirm Dispatch</button>
+        </div>
+      </div>
     </div>
   </div>
 
