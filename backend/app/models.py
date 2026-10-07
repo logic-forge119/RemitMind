@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Numeric, Date, DateTime, ForeignKey, Text
+from sqlalchemy import Column, String, Integer, Float, Numeric, Date, DateTime, ForeignKey, Text, Index
 from sqlalchemy.sql import func
 from app.db import Base
 
@@ -98,3 +98,20 @@ class ModelRun(Base):
     version = Column(String, nullable=False)
     metrics = Column(Text, nullable=True)  # JSON string
     trained_at = Column(DateTime, server_default=func.now())
+
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+
+    id = Column(String, primary_key=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    actor_id = Column(String, nullable=False, index=True)
+    details = Column(Text, nullable=True)  # JSON payload
+    ip_address = Column(String, nullable=True)
+    created_at = Column(DateTime, server_default=func.now(), index=True)
+
+# Hot query path performance indexes
+Index("ix_transfers_sender_created", Transfer.sender_id, Transfer.created_at)
+Index("ix_transfers_receiver_created", Transfer.receiver_id, Transfer.created_at)
+Index("ix_risk_alerts_status_score", RiskAlert.status, RiskAlert.score)
+Index("ix_audit_events_type_created", AuditEvent.event_type, AuditEvent.created_at)
+
