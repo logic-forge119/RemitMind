@@ -8,6 +8,35 @@ const API_BASE = window.location.protocol.startsWith('http')
   ? window.location.origin 
   : 'http://localhost:8000';
 
+function getAuthHeaders(role = 'analyst') {
+  const token = localStorage.getItem('remitmind_jwt');
+  if (token) {
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  }
+  return {
+    'X-API-Key': `dev-${role}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function ensureAuthToken() {
+  if (!localStorage.getItem('remitmind_jwt')) {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/dev-token?role=analyst`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.access_token) {
+          localStorage.setItem('remitmind_jwt', data.access_token);
+        }
+      }
+    } catch (e) {}
+  }
+}
+ensureAuthToken();
+
 // In-Memory Database for Demo & Local Fallback State
 const APP_STATE = {
   transfers: [
@@ -76,6 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopilot();
   initUserSession();
   syncTransfersWithBackend();
+  // Phase 4 UI Redesign Initializers
+  connectAlertsWebSocket();
+  fetchAnalystKPIs();
+  initAnalystKeyboardShortcuts();
+  initPolicyEngine();
+  initSyndicateSlider();
+  initScamShieldCooling();
 });
 
 /* ==========================================================================
@@ -542,7 +578,7 @@ async function renderAnalystAlerts() {
   // Try fetching alerts from backend /api/v1/analyst/alerts
   try {
     const res = await fetch(`${API_BASE}/api/v1/analyst/alerts?status=open`, {
-      headers: { 'X-API-Key': 'upay-risk-secret' }
+      headers: getAuthHeaders('analyst')
     });
     if (res.ok) {
       const serverAlerts = await res.json();
@@ -870,7 +906,7 @@ window.analystResolve = async function(id, decision) {
   try {
     await fetch(`${API_BASE}/api/v1/analyst/alerts/${id}/decision`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': 'upay-risk-secret' },
+      headers: getAuthHeaders('analyst'),
       body: JSON.stringify({ decision: decision, is_fraud: decision !== 'approve' })
     });
   } catch (e) {}
@@ -1379,7 +1415,7 @@ async function loadGraphIntelligence() {
   const pagerankTbody = document.getElementById('pagerank-tbody');
 
   try {
-    const headers = graphDecloaked ? { 'X-API-Key': 'upay-risk-secret' } : {};
+    const headers = graphDecloaked ? getAuthHeaders('analyst') : {};
     const res = await fetch(`${API_BASE}/api/v1/graph/network?decloak=${graphDecloaked}&limit=60`, { headers });
     if (!res.ok) throw new Error('Graph fetch failed');
     const data = await res.json();
@@ -1909,6 +1945,473 @@ async function openBfiuModal(alertId, transferId, score, amountBDT, reasons) {
   }
 }
 
+/* ==========================================================================
+   Phase 4 UI Redesign Implementations
+   ========================================================================== */
+
+let alertsWs = null;
+let wsPollingTimer = null;
+
+function connectAlertsWebSocket() {
+  const badge = document.getElementById('ws-status-badge');
+  const token = localStorage.getItem('remitmind_jwt') || 'dev-analyst';
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${wsProtocol}//${window.location.host}/ws/alerts?token=${encodeURIComponent(token)}`;
+
+  try {
+    alertsWs = new WebSocket(wsUrl);
+
+    alertsWs.onopen = () => {
+      if (badge) {
+        badge.classList.remove('disconnected');
+        badge.innerHTML = '<span class="pulse-dot"></span><span>Live WebSocket</span>';
+      }
+      if (wsPollingTimer) {
+        clearInterval(wsPollingTimer);
+        wsPollingTimer = null;
+      }
+    };
+
+    alertsWs.onmessage = (event) => {
+      try {
+        const alert = JSON.parse(event.data);
+        if (alert && alert.transfer_id) {
+          APP_STATE.transfers.unshift({
+            id: alert.transfer_id,
+            date: new Date().toISOString().substring(0, 16).replace('T', ' '),
+            sender: alert.sender_id || 'Alert Event',
+            receiver: alert.receiver_id || 'Wallet Target',
+            corridor: alert.corridor || 'AED_BDT',
+            amountSrc: `${Number(alert.amount_src || 1000).toLocaleString()} AED`,
+            amountBDT: alert.amount_bdt || 33000,
+            feeBDT: alert.fee_bdt || 600,
+            score: alert.score || alert.risk_score || 85,
+            status: alert.status || 'in_review',
+            reasonCodes: alert.reason_codes || ['LIVE_INTERCEPT'],
+            method: 'Visa •••• 4242'
+          });
+          renderAnalystAlerts();
+          fetchAnalystKPIs();
+          showAppToast(`Live Alert: ${alert.transfer_id} Flagged (${alert.score || 85}/100)`);
+        }
+      } catch (e) {
+        console.warn('WS message parse error:', e);
+      }
+    };
+
+    alertsWs.onclose = alertsWs.onerror = () => {
+      if (badge) {
+        badge.classList.add('disconnected');
+        badge.innerHTML = '<span class="pulse-dot"></span><span>Polling Fallback</span>';
+      }
+      if (!wsPollingTimer) {
+        wsPollingTimer = setInterval(() => {
+          renderAnalystAlerts();
+          fetchAnalystKPIs();
+        }, 8000);
+      }
+    };
+  } catch (err) {
+    if (badge) {
+      badge.classList.add('disconnected');
+      badge.innerHTML = '<span class="pulse-dot"></span><span>Polling Fallback</span>';
+    }
+  }
+}
+
+async function fetchAnalystKPIs() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/analyst/kpis`, {
+      headers: getAuthHeaders('analyst')
+    });
+    if (res.ok) {
+      const kpis = await res.json();
+      const openEl = document.getElementById('kpi-open-today');
+      const closedEl = document.getElementById('kpi-closed-today');
+      const durationEl = document.getElementById('kpi-avg-duration');
+      const fpEl = document.getElementById('kpi-fp-rate');
+      const corridorsEl = document.getElementById('kpi-risky-corridors');
+
+      if (openEl) openEl.innerText = kpis.open_today ?? 14;
+      if (closedEl) closedEl.innerText = kpis.closed_today ?? 48;
+      if (durationEl) durationEl.innerText = `${kpis.avg_review_duration_seconds ?? 38}s`;
+      if (fpEl) fpEl.innerText = `${(kpis.fp_rate_7d ?? 2.1).toFixed(1)}% / ${(kpis.fp_rate_30d ?? 2.4).toFixed(1)}%`;
+      if (corridorsEl) corridorsEl.innerText = (kpis.risky_corridors || ['AED', 'MYR']).join(', ');
+    }
+  } catch (e) {
+    // Keep baseline default KPI indicators
+  }
+}
+
+let currentDrawerAlert = null;
+let currentSelectedAlertIndex = 0;
+
+function openAnalystDrawer(alertId, transferId, score, reasons) {
+  const drawer = document.getElementById('analyst-drawer');
+  const backdrop = document.getElementById('analyst-drawer-backdrop');
+  if (!drawer || !backdrop) return;
+
+  const caseRef = document.getElementById('drawer-case-ref');
+  const modelTag = document.getElementById('drawer-model-tag');
+  const statusBadge = document.getElementById('drawer-status-badge');
+  const body = document.getElementById('drawer-body-content');
+
+  currentDrawerAlert = { alertId, transferId, score, reasons };
+
+  if (caseRef) caseRef.innerText = `Case ${transferId || alertId}`;
+  if (modelTag) modelTag.innerText = `LightGBM Calibrated &bull; TreeSHAP Grounded (${score}/100)`;
+  if (statusBadge) {
+    statusBadge.className = score >= 70 ? 'badge-status in_review' : 'badge-status completed';
+    statusBadge.innerText = score >= 70 ? 'In Review' : 'Auto Clear';
+  }
+
+  const isDoubt = score >= 65 && score <= 75;
+
+  if (body) {
+    body.innerHTML = `
+      <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Conformal Doubt Assessment</span>
+          <span class="ticker-badge" style="background:${isDoubt ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}; color:${isDoubt ? 'var(--risk-review)' : 'var(--upay-emerald)'};">
+            ${isDoubt ? 'DOUBT ROUTED (q_hat=0.0519)' : 'CONFORMAL HIGH CONFIDENCE'}
+          </span>
+        </div>
+        <div style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5;">
+          ${isDoubt 
+            ? 'Model is within inductive doubt band [q_hat ± margin]. Zero auto-blocking applied: requires step-up OTP challenge or analyst release.' 
+            : 'Statistical confidence strictly bounded by conformal calibration set. Clear operational verdict available.'}
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px;">TreeSHAP Attribution Waterfall</h4>
+        <div class="shap-factors-list">
+          <div class="shap-factor-row">
+            <div>
+              <div style="font-weight:600; color:var(--text-primary);">Velocity Spike (3x in 1h)</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">FACTOR-VEL-01</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="num-tabular" style="color:var(--risk-critical); font-weight:700;">+38 pts</span>
+              <div class="shap-bar-track"><div class="shap-bar-fill danger" style="width:78%;"></div></div>
+            </div>
+          </div>
+          <div class="shap-factor-row">
+            <div>
+              <div style="font-weight:600; color:var(--text-primary);">New Destination Beneficiary</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">FACTOR-NEW-RECV</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="num-tabular" style="color:var(--risk-review); font-weight:700;">+24 pts</span>
+              <div class="shap-bar-track"><div class="shap-bar-fill" style="width:55%;"></div></div>
+            </div>
+          </div>
+          <div class="shap-factor-row">
+            <div>
+              <div style="font-weight:600; color:var(--text-primary);">Device Trust Match</div>
+              <div style="font-size:0.72rem; color:var(--text-muted);">FACTOR-DEV-TRUST</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="num-tabular" style="color:var(--upay-emerald); font-weight:700;">-12 pts</span>
+              <div class="shap-bar-track"><div class="shap-bar-fill safe" style="width:30%;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.85rem; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px;">Forensic Evidence IDs</h4>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <span class="scenario-tag">TXN-${transferId || '9803'}</span>
+          <span class="scenario-tag">RULE-VELOCITY-3X</span>
+          <span class="scenario-tag">FACTOR-CORRIDOR-SPIKE</span>
+          <span class="scenario-tag">BFIU-CIRCULAR-26</span>
+        </div>
+      </div>
+    `;
+  }
+
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
+}
+
+function closeAnalystDrawer() {
+  const drawer = document.getElementById('analyst-drawer');
+  const backdrop = document.getElementById('analyst-drawer-backdrop');
+  if (drawer) drawer.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+  currentDrawerAlert = null;
+}
+
+function handleDrawerAction(action) {
+  if (!currentDrawerAlert) return;
+  const { alertId } = currentDrawerAlert;
+  analystResolve(alertId, action);
+  closeAnalystDrawer();
+}
+
+function initAnalystKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+    const drawer = document.getElementById('analyst-drawer');
+    const isDrawerOpen = drawer?.classList.contains('open');
+
+    if (e.key === 'Escape' && isDrawerOpen) {
+      closeAnalystDrawer();
+      return;
+    }
+
+    const key = e.key.toUpperCase();
+    if (['A', 'H', 'E'].includes(key)) {
+      const action = key === 'A' ? 'approve' : (key === 'H' ? 'hold' : 'escalate');
+      if (isDrawerOpen && currentDrawerAlert) {
+        handleDrawerAction(action);
+      } else {
+        const topAlert = APP_STATE.transfers.find(t => t.status === 'in_review');
+        if (topAlert) {
+          analystResolve(topAlert.id, action);
+        }
+      }
+    } else if (key === 'J' || key === 'K') {
+      const reviewQueue = APP_STATE.transfers.filter(t => t.status === 'in_review');
+      if (reviewQueue.length === 0) return;
+      if (key === 'J') {
+        currentSelectedAlertIndex = Math.min(reviewQueue.length - 1, currentSelectedAlertIndex + 1);
+      } else {
+        currentSelectedAlertIndex = Math.max(0, currentSelectedAlertIndex - 1);
+      }
+      const item = reviewQueue[currentSelectedAlertIndex];
+      if (item) {
+        openAnalystDrawer(item.id, item.id, item.score, item.reasonCodes);
+      }
+    }
+  });
+}
+
+let shieldTimerInterval = null;
+
+function initScamShieldCooling() {
+  const display = document.getElementById('shield-countdown-display');
+  const proceedBtn = document.getElementById('btn-shield-proceed');
+  if (!display || !proceedBtn) return;
+
+  let secondsLeft = 30;
+  display.innerText = `${secondsLeft}s`;
+  proceedBtn.disabled = true;
+  proceedBtn.style.opacity = '0.5';
+  proceedBtn.style.cursor = 'not-allowed';
+  proceedBtn.innerText = `I Understand, Proceed (${secondsLeft}s)`;
+
+  if (shieldTimerInterval) clearInterval(shieldTimerInterval);
+
+  shieldTimerInterval = setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft > 0) {
+      display.innerText = `${secondsLeft}s`;
+      proceedBtn.innerText = `I Understand, Proceed (${secondsLeft}s)`;
+    } else {
+      clearInterval(shieldTimerInterval);
+      shieldTimerInterval = null;
+      display.innerText = '0s';
+      display.style.color = 'var(--upay-emerald)';
+      proceedBtn.disabled = false;
+      proceedBtn.style.opacity = '1';
+      proceedBtn.style.cursor = 'pointer';
+      proceedBtn.innerText = 'I Understand, Proceed';
+    }
+  }, 1000);
+}
+
+function initSyndicateSlider() {
+  const slider = document.getElementById('syndicate-stage-slider');
+  if (slider) {
+    slider.addEventListener('input', (e) => {
+      onSyndicateStageChange(parseInt(e.target.value, 10));
+    });
+  }
+}
+
+function onSyndicateStageChange(stageIndex) {
+  const stageNames = [
+    'Stage 0: Normal Remittance Inflow',
+    'Stage 1: Smurfing Fan-out to Mule Relay 1',
+    'Stage 2: Layering Hop to Mule Relay 2',
+    'Stage 3: Syndicate Aggregator Funneling',
+    'Stage 4: Cash-Out Agent OTC Exit'
+  ];
+  showAppToast(stageNames[stageIndex] || `Stage ${stageIndex}`);
+  if (window.loadGraphIntelligence) {
+    window.loadGraphIntelligence();
+  }
+}
+
+function openFloatDispatchModal(division, currentRunway) {
+  const modal = document.getElementById('float-dispatch-modal');
+  if (!modal) return;
+  const divEl = document.getElementById('dispatch-target-division');
+  const runEl = document.getElementById('dispatch-current-runway');
+  if (divEl) divEl.innerText = `${division} Division`;
+  if (runEl) runEl.innerText = `${currentRunway} Hours (Elevated Risk)`;
+  modal.classList.add('open');
+}
+
+function confirmFloatDispatch() {
+  const modal = document.getElementById('float-dispatch-modal');
+  if (modal) modal.classList.remove('open');
+  showAppToast('Float Dispatch Confirmed: BDT 15,000,000 in-transit via armored logistics.');
+  if (window.loadResilienceDivisions) {
+    window.loadResilienceDivisions();
+  }
+}
+
+const DEFAULT_POLICY = {
+  supervised: 0.35,
+  anomaly: 0.25,
+  velocity: 0.15,
+  device: 0.10,
+  centrality: 0.10,
+  scamshield: 0.05,
+  thresh_clear: 40.0,
+  thresh_review: 70.0,
+  thresh_doubt: 5.19
+};
+
+let CURRENT_POLICY = { ...DEFAULT_POLICY };
+
+async function initPolicyEngine() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/policy`, {
+      headers: getAuthHeaders('admin')
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.weights) {
+        CURRENT_POLICY.supervised = data.weights.supervised ?? 0.35;
+        CURRENT_POLICY.anomaly = data.weights.anomaly ?? 0.25;
+        CURRENT_POLICY.velocity = data.weights.velocity ?? 0.15;
+        CURRENT_POLICY.device = data.weights.device ?? 0.10;
+        CURRENT_POLICY.centrality = data.weights.centrality ?? 0.10;
+        CURRENT_POLICY.scamshield = data.weights.scamshield ?? 0.05;
+      }
+      syncPolicySlidersToState();
+    }
+  } catch (e) {
+    syncPolicySlidersToState();
+  }
+}
+
+function syncPolicySlidersToState() {
+  ['supervised', 'anomaly', 'velocity', 'device', 'centrality', 'scamshield'].forEach(key => {
+    const input = document.getElementById(`slider-weight-${key}`);
+    const valDisplay = document.getElementById(`val-weight-${key}`);
+    if (input && CURRENT_POLICY[key] !== undefined) {
+      input.value = CURRENT_POLICY[key];
+      if (valDisplay) valDisplay.innerText = Number(CURRENT_POLICY[key]).toFixed(2);
+    }
+  });
+  computePolicyDiff();
+}
+
+function updatePolicySlider(key, val) {
+  const num = parseFloat(val);
+  const valDisplay = document.getElementById(`val-weight-${key}`);
+  if (valDisplay) valDisplay.innerText = num.toFixed(2);
+  computePolicyDiff();
+}
+
+function applyPolicyPreset(preset) {
+  document.querySelectorAll('.preset-chip[id^="chip-preset-"]').forEach(c => c.classList.remove('active'));
+  document.getElementById(`chip-preset-${preset}`)?.classList.add('active');
+
+  const presets = {
+    standard: { supervised: 0.35, anomaly: 0.25, velocity: 0.15, device: 0.10, centrality: 0.10, scamshield: 0.05 },
+    nocturnal: { supervised: 0.20, anomaly: 0.35, velocity: 0.25, device: 0.10, centrality: 0.05, scamshield: 0.05 },
+    mule_strike: { supervised: 0.15, anomaly: 0.15, velocity: 0.25, device: 0.05, centrality: 0.35, scamshield: 0.05 },
+    scam_surge: { supervised: 0.20, anomaly: 0.15, velocity: 0.15, device: 0.05, centrality: 0.05, scamshield: 0.40 },
+    disaster_relief: { supervised: 0.10, anomaly: 0.10, velocity: 0.05, device: 0.05, centrality: 0.05, scamshield: 0.65 }
+  };
+
+  const weights = presets[preset] || presets.standard;
+  Object.assign(CURRENT_POLICY, weights);
+  syncPolicySlidersToState();
+  showAppToast(`Policy Preset Loaded: ${preset.replace('_', ' ').toUpperCase()}`);
+}
+
+function computePolicyDiff() {
+  const diffBox = document.getElementById('policy-diff-summary');
+  if (!diffBox) return;
+
+  const currentValues = {};
+  ['supervised', 'anomaly', 'velocity', 'device', 'centrality', 'scamshield'].forEach(key => {
+    const input = document.getElementById(`slider-weight-${key}`);
+    currentValues[key] = input ? parseFloat(input.value) : CURRENT_POLICY[key];
+  });
+
+  const changed = Object.keys(currentValues).filter(k => Math.abs(currentValues[k] - DEFAULT_POLICY[k]) > 0.001);
+  if (changed.length === 0) {
+    diffBox.innerHTML = '<span style="color:var(--text-muted);">No unsaved modifications. Policy in sync with production baseline.</span>';
+  } else {
+    diffBox.innerHTML = `
+      <div style="color:var(--risk-review); font-weight:700; margin-bottom:4px;">Pending Configuration Diffs (${changed.length} altered):</div>
+      ${changed.map(k => `<div>&bull; ${k}: <span style="color:#f87171;">${DEFAULT_POLICY[k].toFixed(2)}</span> &rarr; <span style="color:#34d399;">${currentValues[k].toFixed(2)}</span></div>`).join('')}
+    `;
+  }
+}
+
+async function savePolicyChanges() {
+  const payload = {
+    weights: {
+      supervised: parseFloat(document.getElementById('slider-weight-supervised')?.value || 0.35),
+      anomaly: parseFloat(document.getElementById('slider-weight-anomaly')?.value || 0.25),
+      velocity: parseFloat(document.getElementById('slider-weight-velocity')?.value || 0.15),
+      device: parseFloat(document.getElementById('slider-weight-device')?.value || 0.10),
+      centrality: parseFloat(document.getElementById('slider-weight-centrality')?.value || 0.10),
+      scamshield: parseFloat(document.getElementById('slider-weight-scamshield')?.value || 0.05)
+    }
+  };
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/policy`, {
+      method: 'PUT',
+      headers: getAuthHeaders('admin'),
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      Object.assign(CURRENT_POLICY, payload.weights);
+      computePolicyDiff();
+      showAppToast('Risk Policy Hot-Reloaded: Active in Runtime!');
+    } else {
+      showAppToast('Policy updated in local session.');
+    }
+  } catch (err) {
+    showAppToast('Policy applied in local workspace.');
+  }
+}
+
+function resetPolicyDefaults() {
+  Object.assign(CURRENT_POLICY, DEFAULT_POLICY);
+  syncPolicySlidersToState();
+  showAppToast('Policy reset to baseline defaults.');
+}
+
+window.connectAlertsWebSocket = connectAlertsWebSocket;
+window.fetchAnalystKPIs = fetchAnalystKPIs;
+window.openAnalystDrawer = openAnalystDrawer;
+window.closeAnalystDrawer = closeAnalystDrawer;
+window.handleDrawerAction = handleDrawerAction;
+window.initAnalystKeyboardShortcuts = initAnalystKeyboardShortcuts;
+window.initScamShieldCooling = initScamShieldCooling;
+window.initSyndicateSlider = initSyndicateSlider;
+window.onSyndicateStageChange = onSyndicateStageChange;
+window.openFloatDispatchModal = openFloatDispatchModal;
+window.confirmFloatDispatch = confirmFloatDispatch;
+window.initPolicyEngine = initPolicyEngine;
+window.applyPolicyPreset = applyPolicyPreset;
+window.updatePolicySlider = updatePolicySlider;
+window.computePolicyDiff = computePolicyDiff;
+window.savePolicyChanges = savePolicyChanges;
+window.resetPolicyDefaults = resetPolicyDefaults;
 window.triggerPreFlightShieldCheck = triggerPreFlightShieldCheck;
 window.cancelShieldTransfer = cancelShieldTransfer;
 window.confirmShieldProceed = confirmShieldProceed;
@@ -1922,5 +2425,6 @@ window.loadRebalanceSchedule = loadRebalanceSchedule;
 window.handleSimulatorChoice = handleSimulatorChoice;
 window.resetThreatSimulator = resetThreatSimulator;
 window.openBfiuModal = openBfiuModal;
+
 
 
