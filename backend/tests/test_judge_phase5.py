@@ -377,3 +377,20 @@ def test_transfer_ownership_enforcement():
     assert res.status_code == 403
     assert "ownership_violation" in res.json()["detail"]["error"]
 
+
+# -----------------------------------------------------------------------------
+# 11. Empirical Replay ROI & Business Impact
+# -----------------------------------------------------------------------------
+
+def test_empirical_replay_roi_endpoint():
+    """Verify /api/v1/metrics/roi serves verified backtest numbers comparing Rules vs RemitMind."""
+    res = client.get("/api/v1/metrics/roi")
+    assert res.status_code == 200
+    data = res.json()
+    assert "rule_baseline" in data
+    assert "remitmind_hybrid" in data
+    assert "improvements" in data
+    assert data["improvements"]["alert_reduction_pct"] > 50.0
+    assert data["improvements"]["analyst_hours_saved"] > 5.0
+
+
