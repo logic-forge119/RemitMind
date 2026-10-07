@@ -79,8 +79,9 @@ def test_create_transfer_anomaly():
     assert len(data["reason_codes"]) > 0
 
 def test_analyst_alerts_and_decision():
+    headers = {"X-API-Key": "dev-analyst"}
     # 1. Fetch alerts
-    res = client.get("/api/v1/analyst/alerts?status=open")
+    res = client.get("/api/v1/analyst/alerts?status=open", headers=headers)
     assert res.status_code == 200
     alerts = res.json()
     assert isinstance(alerts, list)
@@ -88,7 +89,7 @@ def test_analyst_alerts_and_decision():
     if len(alerts) > 0:
         alert_id = alerts[0]["alert_id"]
         # 2. Get detail
-        res_det = client.get(f"/api/v1/analyst/alerts/{alert_id}")
+        res_det = client.get(f"/api/v1/analyst/alerts/{alert_id}", headers=headers)
         assert res_det.status_code == 200
         det = res_det.json()
         assert det["alert_id"] == alert_id
@@ -100,7 +101,7 @@ def test_analyst_alerts_and_decision():
             "note": "Verified legit family remittance",
             "is_fraud": False
         }
-        res_dec = client.post(f"/api/v1/analyst/alerts/{alert_id}/decision", json=dec_payload)
+        res_dec = client.post(f"/api/v1/analyst/alerts/{alert_id}/decision", json=dec_payload, headers=headers)
         assert res_dec.status_code == 200
         dec_data = res_dec.json()
         assert dec_data["status"] == "closed"
@@ -250,9 +251,23 @@ def test_analyst_key_security():
     res = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "wrong-secret-key"})
     assert res.status_code == 401
 
-    # Valid key must succeed
-    res_valid = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "upay-risk-secret"})
-    assert res_valid.status_code == 200
+    # Dev token header must succeed
+    res_dev = client.get("/api/v1/analyst/alerts", headers={"X-API-Key": "dev-analyst"})
+    assert res_dev.status_code == 200
+
+    # JWT Bearer token must succeed for analyst
+    token_res = client.post("/api/v1/auth/dev-token", json={"role": "analyst", "user_id": "u_test_analyst"})
+    assert token_res.status_code == 200
+    token = token_res.json()["access_token"]
+    res_jwt = client.get("/api/v1/analyst/alerts", headers={"Authorization": f"Bearer {token}"})
+    assert res_jwt.status_code == 200
+
+    # Sender role must be rejected with 403 Forbidden
+    sender_token_res = client.post("/api/v1/auth/dev-token", json={"role": "sender", "user_id": "u_test_sender"})
+    assert sender_token_res.status_code == 200
+    sender_token = sender_token_res.json()["access_token"]
+    res_forbidden = client.get("/api/v1/analyst/alerts", headers={"Authorization": f"Bearer {sender_token}"})
+    assert res_forbidden.status_code == 403
 
 def test_docs_hub():
     res_list = client.get("/api/v1/docs")
