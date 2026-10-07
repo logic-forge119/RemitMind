@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initRiskRadar();
   initReceiverPortal();
   initAgentForecast();
+  initScrollAnimations();
 });
 
 /* ==========================================================================
@@ -196,15 +197,45 @@ function balanceGoals(changedInput) {
   const savings = document.getElementById('goal-savings');
   if (!rent || !school || !savings) return;
 
-  let total = Number(rent.value) + Number(school.value) + Number(savings.value);
-  if (total !== 100) {
-    let diff = 100 - total;
-    if (changedInput !== savings) {
-      let currentSav = Number(savings.value);
-      savings.value = Math.max(0, Math.min(100, currentSav + diff));
+  let rVal = Math.max(0, Math.min(100, Number(rent.value) || 0));
+  let sVal = Math.max(0, Math.min(100, Number(school.value) || 0));
+  let savVal = Math.max(0, Math.min(100, Number(savings.value) || 0));
+
+  if (changedInput === rent) {
+    let remainder = 100 - rVal;
+    let otherSum = sVal + savVal;
+    if (otherSum === 0) {
+      school.value = Math.round(remainder * 0.6);
+      savings.value = Math.max(0, remainder - Number(school.value));
     } else {
-      let currentRent = Number(rent.value);
-      rent.value = Math.max(0, Math.min(100, currentRent + diff));
+      let ratio = remainder / otherSum;
+      let newSchool = Math.round(sVal * ratio);
+      school.value = Math.max(0, newSchool);
+      savings.value = Math.max(0, remainder - Number(school.value));
+    }
+  } else if (changedInput === school) {
+    let remainder = 100 - sVal;
+    let otherSum = rVal + savVal;
+    if (otherSum === 0) {
+      rent.value = Math.round(remainder * 0.7);
+      savings.value = Math.max(0, remainder - Number(rent.value));
+    } else {
+      let ratio = remainder / otherSum;
+      let newRent = Math.round(rVal * ratio);
+      rent.value = Math.max(0, newRent);
+      savings.value = Math.max(0, remainder - Number(rent.value));
+    }
+  } else {
+    let remainder = 100 - savVal;
+    let otherSum = rVal + sVal;
+    if (otherSum === 0) {
+      rent.value = Math.round(remainder * 0.6);
+      school.value = Math.max(0, remainder - Number(rent.value));
+    } else {
+      let ratio = remainder / otherSum;
+      let newRent = Math.round(rVal * ratio);
+      rent.value = Math.max(0, newRent);
+      school.value = Math.max(0, remainder - Number(rent.value));
     }
   }
 
@@ -608,6 +639,8 @@ window.switchSandboxTab = function(tabId) {
   });
 };
 
+let toastTimeout = null;
+
 function showToast(msg) {
   let toast = document.getElementById('toast-notification');
   if (!toast) {
@@ -616,9 +649,70 @@ function showToast(msg) {
     toast.className = 'toast-notice';
     document.body.appendChild(toast);
   }
-  toast.innerText = msg;
-  toast.style.display = 'flex';
-  setTimeout(() => {
-    toast.style.display = 'none';
-  }, 4000);
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+  }
+
+  toast.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--upay-emerald)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span>${msg}</span>
+  `;
+
+  // Force reflow and re-trigger animation cleanly
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3200);
+}
+
+// Ensure global availability for dock.js and inline handlers
+window.showToast = showToast;
+
+/* ==========================================================================
+   7. Scroll Animations & Reveal Observer
+   ========================================================================== */
+function initScrollAnimations() {
+  const animatedElements = document.querySelectorAll('.fade-up, .stat-card, .pillar-card, .ethics-card, .section-header');
+
+  if (!('IntersectionObserver' in window)) {
+    // Graceful fallback for environments without IntersectionObserver
+    animatedElements.forEach(el => el.classList.add('visible'));
+    return;
+  }
+
+  // Pre-apply fade-up to target cards if not already present
+  animatedElements.forEach(el => {
+    if (!el.classList.contains('fade-up')) {
+      el.classList.add('fade-up');
+    }
+  });
+
+  // Automatically assign stagger index to sibling cards
+  const grids = document.querySelectorAll('.stats-grid, .pillars-grid, .ethics-grid');
+  grids.forEach(grid => {
+    const children = grid.children;
+    for (let i = 0; i < children.length; i++) {
+      children[i].style.transitionDelay = `${(i % 4) * 60}ms`;
+    }
+  });
+
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
+  });
+
+  animatedElements.forEach(el => observer.observe(el));
 }
