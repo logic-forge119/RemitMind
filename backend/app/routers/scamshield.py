@@ -57,12 +57,15 @@ REFUND_KEYWORDS = [
     "ভুল করে", "ফেরত", "ভুল টাকা", "রিফান্ড"
 ]
 
+from app.services.normalizer import contains_scam_keyword
+
 @router.post("/check", response_model=ScamShieldCheckResponse)
 @router.post("/verify", response_model=ScamShieldCheckResponse)
 def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(get_db)):
     """
     Pre-flight safety analysis of a proposed remittance.
     Scans semantic intent, transaction novelty, off-hours timing, and velocity deviation.
+    Neutralizes zero-width characters, homoglyphs, NFKC decomposition, and leet evasion.
     """
     intercept = False
     risk_level = "low"
@@ -71,10 +74,10 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
     reasons = []
     risk_score = 15.0
 
-    memo_lower = (req.memo or "").lower()
+    memo_text = req.memo or ""
 
-    # 1. Semantic Threat Categorization
-    if any(k in memo_lower for k in LOTTERY_KEYWORDS):
+    # 1. Semantic Threat Categorization with Anti-Evasion Normalization
+    if contains_scam_keyword(memo_text, LOTTERY_KEYWORDS):
         scam_type = "lottery_fraud"
         intercept = True
         risk_level = "critical"
@@ -89,7 +92,7 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
             "জরুরি সতর্কতা: কোনো বৈধ লটারি বা পুরস্কারের জন্য কখনো অগ্রিম প্রসেসিং ফি বা টাকা পাঠাতে হয় না। "
             "এটি প্রতারক চক্রের একটি ফাঁদ। টাকা পাঠাবেন না।"
         )
-    elif any(k in memo_lower for k in REGULATOR_KEYWORDS):
+    elif contains_scam_keyword(memo_text, REGULATOR_KEYWORDS):
         scam_type = "fake_regulator"
         intercept = True
         risk_level = "critical"
@@ -104,7 +107,7 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
             "সর্বোচ্চ সতর্কতা: পুলিশ, বিএফআইইউ বা বাংলাদেশ ব্যাংক কখনোই জরিমানা বা অ্যাকাউন্ট চালুর নামে কোনো ব্যক্তিগত ওয়ালেটে টাকা পাঠাতে বলে না। "
             "এটি সরকারি সংস্থার পরিচয় ব্যবহারকারী প্রতারণা।"
         )
-    elif any(k in memo_lower for k in EMERGENCY_KEYWORDS):
+    elif contains_scam_keyword(memo_text, EMERGENCY_KEYWORDS):
         scam_type = "family_emergency"
         intercept = True
         risk_level = "high"
@@ -119,7 +122,7 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
             "উচ্চ ঝুঁকি: প্রতারকরা প্রায়শই স্বজন দুর্ঘটনা বা হাসপাতালে থাকার ভুয়া নাটক তৈরি করে আতঙ্ক সৃষ্টি করে। "
             "টাকা পাঠানোর আগে অবিলম্বে আপনার স্বজনের পরিচিত নিজস্ব নম্বরে কল করে সত্যতা যাচাই করুন।"
         )
-    elif any(k in memo_lower for k in REFUND_KEYWORDS):
+    elif contains_scam_keyword(memo_text, REFUND_KEYWORDS):
         scam_type = "accidental_refund_trap"
         intercept = True
         risk_level = "high"
@@ -140,7 +143,16 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
 
     # 2. Novel Beneficiary & Off-Hours Check
     now = datetime.now(timezone.utc)
-    current_hour = now.hour  # UTC hour (or local if configured)
+    if req.timestamp:
+        try:
+            ts = datetime.fromisoformat(req.timestamp.replace("Z", "+00:00"))
+            current_hour = ts.hour
+        except Exception:
+            current_hour = 14
+    else:
+        # Bangladesh Standard Time (UTC+6)
+        current_hour = (now.hour + 6) % 24
+    
     is_off_hours = (current_hour >= 23 or current_hour <= 5)
 
     receiver = db.query(User).filter(User.id == req.receiver_id).first()
@@ -152,9 +164,11 @@ def check_transaction_safety(req: ScamShieldCheckRequest, db: Session = Depends(
     if not has_prior_transfer:
         reasons.append("NOVEL_BENEFICIARY_FIRST_TRANSACTION")
         risk_score += 20.0
-        if is_off_hours or req.amount >= 25000:
+        # High-risk nocturnal novel transfer or massive sum
+        if (is_off_hours and req.amount >= 5000) or req.amount >= 25000:
             intercept = True
-            risk_level = "critical" if req.amount >= 50000 else "high"
+            if risk_level != "critical":
+                risk_level = "critical" if req.amount >= 50000 else "high"
             cooling_off = max(cooling_off, 30)
             if scam_type == "none":
                 scam_type = "night_novel_beneficiary"
