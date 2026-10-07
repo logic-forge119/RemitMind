@@ -14,6 +14,8 @@ from app.models import User, Transfer
 from app.services.graph import analyze_graph, build_transaction_graph, detect_communities, compute_pagerank, classify_node_role
 from app.services.cloak import cloak_node_id, decloak_user_id
 
+from app.auth import get_optional_user, require_role
+
 router = APIRouter(prefix="/api/v1/graph", tags=["SyndicateRadar & Graph Intelligence"])
 
 class QuarantineRequest(BaseModel):
@@ -31,6 +33,7 @@ class QuarantineResponse(BaseModel):
 @router.get("/network")
 def get_graph_network(
     decloak: bool = Query(False, description="Display real user IDs instead of cloaked tokens"),
+    authorization: Optional[str] = Header(None),
     x_api_key: Optional[str] = Header(None),
     limit: int = Query(500, description="Max transfers to analyze"),
     db: Session = Depends(get_db)
@@ -39,7 +42,8 @@ def get_graph_network(
     Returns full node-link graph data formatted for force-directed Canvas/SVG visualization.
     PII cloaking is enabled by default unless analyst credentials are validated.
     """
-    is_analyst = (x_api_key == "upay-risk-secret")
+    user = get_optional_user(authorization=authorization, x_api_key=x_api_key)
+    is_analyst = user is not None and user.get("role") in ("analyst", "admin")
     allow_decloak = decloak and is_analyst
 
     analysis = analyze_graph(db, max_transfers=limit)
@@ -103,7 +107,7 @@ def get_graph_pagerank(
         "total_profiled": len(sorted_nodes)
     }
 
-@router.post("/quarantine", response_model=QuarantineResponse)
+@router.post("/quarantine", response_model=QuarantineResponse, dependencies=[Depends(require_role("analyst", "admin"))])
 def quarantine_cluster_or_node(req: QuarantineRequest, db: Session = Depends(get_db)):
     """
     1-Click Quarantine: Freezes all accounts and puts pending transfers on hold
@@ -119,11 +123,15 @@ def quarantine_cluster_or_node(req: QuarantineRequest, db: Session = Depends(get
         if not target_real_ids:
             raise HTTPException(status_code=404, detail=f"No active nodes found in cluster {req.cluster_id}")
 
-        # Update users
-        users = db.query(User).filter(User.id.in_(target_real_ids)).all()
-        for u in users:
-            u.is_quarantined = 1
-            u.quarantine_reason = req.reason
+        # Update or record quarantined users
+        for uid in target_real_ids:
+            u = db.query(User).filter(User.id == uid).first()
+            if not u:
+                u = User(id=uid, name=f"User {uid}", role="sender", is_quarantined=1, quarantine_reason=req.reason)
+                db.add(u)
+            else:
+                u.is_quarantined = 1
+                u.quarantine_reason = req.reason
             frozen_users += 1
 
         # Freeze transfers involving these users
