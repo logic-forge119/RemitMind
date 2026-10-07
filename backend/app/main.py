@@ -19,7 +19,7 @@ from app.models import (
     User, Agent, Goal, RateHistory, Transfer,
     RiskAlert, ReviewAction, AgentCashDaily, ModelRun
 )
-from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai, scamshield, graph, resilience, compliance, docs
+from app.routers import plans, transfers, analyst, receiver, agents, metrics, dev, ai, scamshield, graph, resilience, compliance, docs, policy, websocket
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,6 +53,10 @@ async def lifespan(app: FastAPI):
         db.close()
     yield
 
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
+from app.auth import auth_router
+
 app = FastAPI(
     title="RemitMind API",
     description="AI-Powered Remittance Intelligence & Safety Layer for upay Bangladesh",
@@ -61,6 +65,23 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Attach slowapi rate limiter to state
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_handler(request, exc: RateLimitExceeded):
+    """Bilingual 429 Rate Limit Exceeded response."""
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error": "rate_limit_exceeded",
+            "detail": "Too many requests. Rate limit exceeded (10 req/min on transfers). Please wait before trying again.",
+            "detail_bn": "অনুরোধের সীমা অতিক্রম করেছে (প্রতি মিনিটে সর্বোচ্চ ১০টি)। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করে পুনরায় চেষ্টা করুন।",
+            "retry_after_seconds": 60
+        },
+        headers={"Retry-After": "60"}
+    )
 
 # CORS Setup
 app.add_middleware(
@@ -72,6 +93,7 @@ app.add_middleware(
 )
 
 # Include API Routers
+app.include_router(auth_router)
 app.include_router(plans.router)
 app.include_router(transfers.router)
 app.include_router(analyst.router)
@@ -85,6 +107,9 @@ app.include_router(graph.router)
 app.include_router(resilience.router)
 app.include_router(compliance.router)
 app.include_router(docs.router)
+app.include_router(policy.router)
+app.include_router(websocket.router)
+
 
 # Health & Readiness Probes
 @app.get("/health", tags=["Health"])
