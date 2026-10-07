@@ -1,0 +1,98 @@
+{
+  "benchmark_dataset": "PaySim Synthetic Mobile-Money Benchmark (Lopez-Rojas et al.)",
+  "total_records": 25000,
+  "temporal_horizon_steps": 744,
+  "split_protocol": "Strict Chronological (Zero Data Leakage)",
+  "train_size": 17331,
+  "val_size": 3875,
+  "test_size": 3794,
+  "fraud_prevalence_pct": 0.94,
+  "comparison_table": [
+    {
+      "model_name": "Rule-Based Baseline",
+      "pr_auc": 0.9715,
+      "roc_auc": 0.9997,
+      "recall_at_1pct_fpr": 100.0,
+      "recall_at_5pct_fpr": 100.0,
+      "precision_at_k": 70.0,
+      "brier_score": 0.0377,
+      "precision_at_0_5": 0.1683,
+      "recall_at_0_5": 1.0,
+      "f1_at_0_5": 0.2881
+    },
+    {
+      "model_name": "Isolation Forest",
+      "pr_auc": 0.9861,
+      "roc_auc": 0.9999,
+      "recall_at_1pct_fpr": 100.0,
+      "recall_at_5pct_fpr": 100.0,
+      "precision_at_k": 70.0,
+      "brier_score": 0.078,
+      "precision_at_0_5": 0.1199,
+      "recall_at_0_5": 1.0,
+      "f1_at_0_5": 0.2141
+    },
+    {
+      "model_name": "Supervised LightGBM",
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "recall_at_1pct_fpr": 100.0,
+      "recall_at_5pct_fpr": 100.0,
+      "precision_at_k": 70.0,
+      "brier_score": 0.0,
+      "precision_at_0_5": 1.0,
+      "recall_at_0_5": 1.0,
+      "f1_at_0_5": 1.0
+    },
+    {
+      "model_name": "RemitMind Hybrid (Ours)",
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "recall_at_1pct_fpr": 100.0,
+      "recall_at_5pct_fpr": 100.0,
+      "precision_at_k": 70.0,
+      "brier_score": 0.0021,
+      "precision_at_0_5": 0.7609,
+      "recall_at_0_5": 1.0,
+      "f1_at_0_5": 0.8642
+    }
+  ],
+  "conformal_calibration": {
+    "alpha": 0.05,
+    "target_coverage_pct": 95.0,
+    "empirical_coverage_pct": 96.71,
+    "conformal_doubt_rate_pct": 0.0,
+    "q_hat": 0.0019
+  },
+  "top_features_shap": [
+    {
+      "feature": "day_of_week_dev",
+      "importance": 0.2227
+    },
+    {
+      "feature": "accounts_per_device",
+      "importance": 0.0336
+    },
+    {
+      "feature": "time_since_last_txn_hours",
+      "importance": 0.0065
+    },
+    {
+      "feature": "amount_z",
+      "importance": 0.0001
+    },
+    {
+      "feature": "sim_swap_recent",
+      "importance": 0.0
+    },
+    {
+      "feature": "frequency_30d",
+      "importance": 0.0
+    },
+    {
+      "feature": "device_age_days",
+      "importance": 0.0
+    }
+  ],
+  "generated_at": "2026-10-07T05:05:17.588253+00:00"
+}

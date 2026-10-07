@@ -91,14 +91,11 @@ class AnomalyScorer:
                 return
 
             from sklearn.ensemble import IsolationForest
-            rng = np.random.RandomState(42)
-            normal_data = rng.normal(
-                loc=[0.0, 0.2, 0.05, 0.05, 14.0, 1.0],
-                scale=[1.0, 0.4, 0.2, 0.2, 4.0, 0.3],
-                size=(500, 6)
-            )
-            self.iso_model = IsolationForest(n_estimators=100, contamination=0.08, random_state=42)
-            self.iso_model.fit(normal_data)
+            from data.paysim_benchmark import generate_paysim_benchmark_data, BENCHMARK_FEATURE_COLUMNS
+            df_init = generate_paysim_benchmark_data(n_samples=2000, random_seed=42)
+            normal_rows = df_init[df_init["isFraud"] == 0][BENCHMARK_FEATURE_COLUMNS].values
+            self.iso_model = IsolationForest(n_estimators=100, contamination=0.015, random_state=42)
+            self.iso_model.fit(normal_rows)
             ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
             joblib.dump(self.iso_model, ISO_FOREST_FILE)
         except Exception:
@@ -205,12 +202,19 @@ class AnomalyScorer:
                     # Filter top positive contributors (driving score upwards)
                     pos_contribs = []
                     for idx, val in enumerate(s_vals):
-                        if val > 0.001:
+                        if val > 1e-6:
                             col_name = self.feature_columns[idx]
                             friendly = FRIENDLY_FEATURE_NAMES.get(col_name, col_name)
                             pos_contribs.append((friendly, float(val)))
 
                     pos_contribs.sort(key=lambda x: x[1], reverse=True)
+                    if not pos_contribs:
+                        for idx, val in enumerate(s_vals):
+                            col_name = self.feature_columns[idx]
+                            friendly = FRIENDLY_FEATURE_NAMES.get(col_name, col_name)
+                            pos_contribs.append((friendly, abs(float(val))))
+                        pos_contribs.sort(key=lambda x: x[1], reverse=True)
+
                     total_pos = sum(v for _, v in pos_contribs) or 1.0
 
                     for name, v in pos_contribs[:4]:
@@ -232,14 +236,39 @@ class AnomalyScorer:
             base_score = 15.0
             if self.iso_model is not None:
                 try:
-                    iso_features = np.array([[
-                        amount_z,
-                        float(velocity_1h),
-                        1.0 if is_new_receiver else 0.0,
-                        1.0 if is_new_device else 0.0,
-                        float(hour_of_day),
-                        float(distinct_senders_24h)
-                    ]])
+                    feat_map = {
+                        "amount_src": amount_src,
+                        "amount_bdt": amount_bdt,
+                        "amount_z": amount_z,
+                        "velocity_1h": velocity_1h,
+                        "frequency_7d": frequency_7d,
+                        "frequency_30d": frequency_30d,
+                        "time_since_last_txn_hours": time_since_last_txn_hours,
+                        "day_of_week_dev": day_of_week_dev,
+                        "is_dormant_reactivation": 1 if is_dormant_reactivation else 0,
+                        "device_age_days": 1 if is_new_device else device_age_days,
+                        "accounts_per_device": accounts_per_device,
+                        "sim_swap_recent": 1 if sim_swap_recent else 0,
+                        "country_jump": 1 if country_jump else 0,
+                        "is_new_receiver": 1 if is_new_receiver else 0,
+                        "hour_of_day": hour_of_day,
+                        "is_night": is_night,
+                        "distinct_senders_to_receiver_24h": distinct_senders_24h,
+                        "is_high_value_legitimate": is_high_val
+                    }
+                    cols = self.feature_columns or list(feat_map.keys())
+                    if hasattr(self.iso_model, "n_features_in_") and self.iso_model.n_features_in_ == 6:
+                        iso_features = np.array([[
+                            amount_z,
+                            float(velocity_1h),
+                            1.0 if is_new_receiver else 0.0,
+                            1.0 if is_new_device else 0.0,
+                            float(hour_of_day),
+                            float(distinct_senders_24h)
+                        ]])
+                    else:
+                        iso_features = np.array([[feat_map.get(c, 0.0) for c in cols]], dtype=float)
+
                     raw_anomaly = self.iso_model.decision_function(iso_features)[0]
                     scaled = 45.0 - (raw_anomaly * 180.0)
                     base_score = max(5.0, min(80.0, scaled))
